@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root"></div>
+      
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      // Global 에 React 와 ReactDOM 객체가 생성
+      console.log(React);
+      console.log(ReactDOM);
+      
+      const dom = document.getElementById('root');
+      
+      class ClassComponent extends React.Component {
+        // static defaultProps = {
+        //     a: "디폴트 값"
+        // };
+
+        // constructor(props) {
+        //     super(props);
+        //     this.state = {
+        //         isClick: false
+        //     };
+        // }
+        state = {
+            s: '스테이트',
+            isClick: false
+        };
+      	render() {
+            // console.log(this.state.isClick);
+            const { isClick } = this.state;
+            const { a } = this.props;
+            if (isClick === false) {
+                return (
+                    <div>
+                        <h1>제목</h1>
+                        <p>{a}</p>
+                        <button 
+                            onClick={() => {
+                                const newState = this.state;
+                                newState.isClick = true
+                                // this.setState({
+                                //     ... this.state,
+                                //     isClick: true
+                                // });
+                                this.setState(newState);
+                            }}>
+                            클릭
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div>
+                    <h1>제목</h1>
+                </div>
+            )
+      	}
+      }
+
+      ClassComponent.defaultProps = {
+        a: "디폴트 값"
+      };
+
+
+      
+      const FunctionalComponent = props => {
+        function click() {
+            console.log("clicked");
+        }
+        return (
+            <div>
+                <h1>제목</h1>
+                <p>{typeof props.a} {props.a}</p>
+                <p>{props.children}</p>
+                <button onClick={click}>클릭</button>
+            </div>
+        );
+      };
+      
+      ReactDOM.render(
+        <div>
+            <ClassComponent a="hi" />
+            <ClassComponent></ClassComponent>
+            <FunctionalComponent a="hello" />
+            <FunctionalComponent a={37} />
+            <FunctionalComponent a={() => {}} />
+            <FunctionalComponent>children</FunctionalComponent>
+        </div>, 
+        dom
+      );
+    </script>
+  </body>
+</html>
