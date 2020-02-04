@@ -299,6 +299,8 @@ webpack -------> # 파일 확장자에 맞는 loader 에게 위임
 + The pluggable linting utility for JavaScript and JSX
 + 자바스크립트로 되어 있는 코드를 설정된 규칙에 맞출 수 있음
 
+<br>
+
 ### 설치
 
 ```bash
@@ -388,7 +390,7 @@ code .
 
 <br>
 
-### rule 추가
+### rule
 
 ```json
 {
@@ -480,3 +482,80 @@ npx eslint index.js
 
 <br>
 
+## Prettier
+
++ An opinonated code formatter
++ ESLint 는 잘못된 코드를 알려주지만 Prettier는 코드를 마음대로 바꿈
++ 참고 : [https://prettier.io](https://prettier.io)
+
+<br>
+
+### 설치 및 테스트
+
+```bash
+mkdir prettier-test
+cd prettier-test
+npm init -y
+npm i prettier -D
+code .
+```
+
+```js
+// index.js
+console.log('hello')
+```
+
+```bash
+# 내용이 수정되진 않지만 해당 수정 내용을 알려줌
+npx prettier index.js
+# console.log("hello");
+```
+
+```bash
+# index.js 가 수정됨
+npx prettier --write index.js
+```
+
+<br>
+
+![Prettier](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354597/스크린샷_2019-07-12_오후_11.14.46.png)
+
+<br>
+
+#### Prettier 설정
+
+File -> Prefferences -> Settings -> format 검색 -> Editor: Format On Save 체크
+
+<br>
+
+### .prettierrc
+
++ Prettier 가 지정해 놓은 설정을 덮어씌우는 용도의 파일
+
+```json
+{
+    "singleQuote": true,
+    "trailingComma": "all"
+}
+```
+
++ 참고 : [https://prettier.io/docs/en/options.html](https://prettier.io/docs/en/options.html)
+
+<br>
+
+## Format Document
+
+![Format Document](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354605/스크린샷_2019-07-12_오후_11.17.01.png)
+
++ Command + Shift + P > Format Document
+
+<br>
+
+## eslint-config-prettier
+
++ Prettier 에서 불필요하거나 Prettier 와 충돌할 수 있는 모든 규칙을 끕니다. 
++ 이 구성은 규칙을 끄기만 하기 때문에 다른 설정과 함께 사용하는 것이 좋습니다. 
+
+![eslint-config-prettier](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354638/스크린샷_2019-07-12_오후_11.28.05.png)
+
++ 참고 : [https://github.com/prettier/eslint-config-prettier](https://github.com/prettier/eslint-config-prettier)
