@@ -522,7 +522,7 @@ npx prettier --write index.js
 
 <br>
 
-#### Prettier 설정
+### Prettier 설정
 
 File -> Prefferences -> Settings -> format 검색 -> Editor: Format On Save 체크
 
@@ -543,7 +543,7 @@ File -> Prefferences -> Settings -> format 검색 -> Editor: Format On Save 체�
 
 <br>
 
-## Format Document
+### Format Document
 
 ![Format Document](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354605/스크린샷_2019-07-12_오후_11.17.01.png)
 
@@ -551,7 +551,7 @@ File -> Prefferences -> Settings -> format 검색 -> Editor: Format On Save 체�
 
 <br>
 
-## eslint-config-prettier
+### eslint-config-prettier
 
 + Prettier 에서 불필요하거나 Prettier 와 충돌할 수 있는 모든 규칙을 끕니다. 
 + 이 구성은 규칙을 끄기만 하기 때문에 다른 설정과 함께 사용하는 것이 좋습니다. 
@@ -559,3 +559,151 @@ File -> Prefferences -> Settings -> format 검색 -> Editor: Format On Save 체�
 ![eslint-config-prettier](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354638/스크린샷_2019-07-12_오후_11.28.05.png)
 
 + 참고 : [https://github.com/prettier/eslint-config-prettier](https://github.com/prettier/eslint-config-prettier)
+
+<br>
+
+## Husky
+
++ Git hooks made easy
++ commit 전 ESLint 와 Prettier 를 이용해 코드를 규칙에 맞게 정리해줌
+
+![husky](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6616613/스크린샷_2019-10-04_오후_8.48.47.png)
+
++ 참고 : [https://github.com/typicode/husky](https://github.com/typicode/husky)
+
+<br>
+
+### 설치
+
+```bash
+mkdir husky-test
+cd husky-test
+npm init -y
+git init
+npm i husky -D
+code .
+```
+
+```json
+// package.json
+
+{
+  "name": "husky-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^3.0.8"
+  }
+}
+```
+
+### git commit
+
+```bash
+git add -A 
+git commit -m "husky-test"
+```
+
+<br>
+
+### lint-staged
+
++ Run linters on git staged files
++ 고쳐야 할 파일을 고친 후 stage로 만듦
+
+![lint-staged](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6617473/스크린샷_2019-10-04_오후_11.57.14.png)
+
++ 참고 : [https://github.com/okonet/lint-staged](https://github.com/okonet/lint-staged)
+
+```bash
+npm i lint-staged -D
+```
+
+```json
+// package.json 수정
+
+{
+  "name": "husky-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+  	"**/*js": [
+       "git add"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^3.0.8"
+  }
+}
+```
+
+```bash
+npm i eslint prettier -D
+```
+
+```json
+{
+  "name": "husky-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.js": [
+      "eslint --fix", // 모든 경로의 파일을 eslint로 고치고
+      "prettier --write", // prettier 로 작성 후
+      "git add" // git add 한다.
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^3.0.8",
+    "lint-staged": "^9.4.1"
+  },
+  "eslintConfig": {}
+}
+```
+
+<br>
+
+## React Developer Tools
+
++ 개발 모드
+
+![https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354664/스크린샷_2019-07-12_오후_11.41.58.png](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354664/스크린샷_2019-07-12_오후_11.41.58.png)
+
++ chrome 웹 스토어 설치 : [[https://chrome.google.com/webstore/search/react%20developer%20tools?hl=ko](https://chrome.google.com/webstore/search/react developer tools?hl=ko)]([https://chrome.google.com/webstore/search/react%20developer%20tools?hl=ko](https://chrome.google.com/webstore/search/react developer tools?hl=ko))
+
