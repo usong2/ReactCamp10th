@@ -705,5 +705,4 @@ npm i eslint prettier -D
 
 ![https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354664/스크린샷_2019-07-12_오후_11.41.58.png](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/6354664/스크린샷_2019-07-12_오후_11.41.58.png)
 
-+ chrome 웹 스토어 설치 : [[https://chrome.google.com/webstore/search/react%20developer%20tools?hl=ko](https://chrome.google.com/webstore/search/react developer tools?hl=ko)]([https://chrome.google.com/webstore/search/react%20developer%20tools?hl=ko](https://chrome.google.com/webstore/search/react developer tools?hl=ko))
-
++ chrome 웹 스토어 설치 : [https://chrome.google.com/webstore/search/react%20developer%20tools?hl=ko](https://chrome.google.com/webstore/search/react developer tools?hl=ko)
