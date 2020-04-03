@@ -1,7 +1,7 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import StyledButton, { PrimaryStyledButton } from "./StyledButton";
+import MyButton from "./StyledButton";
 
 function App() {
   return (
@@ -9,10 +9,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          <StyledButton as="a" href="/">
-            버튼
-          </StyledButton>
-          <PrimaryStyledButton primary>버튼</PrimaryStyledButton>
+          <MyButton primary>버튼</MyButton>
         </p>
       </header>
     </div>

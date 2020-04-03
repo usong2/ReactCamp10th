@@ -259,17 +259,116 @@ export default App;
 
 ## :star:styled(컴포넌트)
 
+### 기본 버튼
+
 ```jsx
 /* src/StyledButton.jsx */
 
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled, { css } from "styled-components";
 
-function MyButton({ className, children }) {
-  return <button className={className}>MyButton {children}</button>;
-}
+// const MyButton = ({ className, children }) => (
+//   <button className={className}>{children}</button>
+// );
+const MyButton = props => <button {...props} />;
 
 const StyledButton = styled(MyButton)`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid palevioletred;
+  color: palevioletred;
+  margin: 0 1em;
+  padding: 0.25em 1em;
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>button</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+### primary 버튼
+
+```jsx
+/* src/StyledButton.jsx */
+
+import React from "react";
+import styled, { css } from "styled-components";
+
+// const MyButton = ({ className, children }) => (
+//   <button className={className}>{children}</button>
+// );
+const MyButton = props => <button {...props} />;
+
+const StyledButton = styled(MyButton)`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid palevioletred;
+  color: palevioletred;
+  margin: 0 1em;
+  padding: 0.25em 1em;
+
+  ${props =>
+    props.primary &&
+    css`
+      background: palevioletred;
+      color: white;
+    `};
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import MyButton from "./StyledButton";
+
+function App() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          <MyButton>버튼</MyButton>
+        </p>
+      </header>
+    </div>
+  );
+}
+
+export default App;
+```
+
+<br>
+
+## styled('태그') = styled.태그
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledButton = styled('button')`
   background: transparent;
   border-radius: 3px;
   border: 2px solid palevioletred;
@@ -301,3 +400,177 @@ function App() {
 export default App;
 ```
 
+<br>
+
+## ${props => props.color||"}
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid ${props => props.color || 'palevioletred'};
+  color: ${props => props.color || 'palevioletred'};
+  margin: 0 1em;
+  padding: 0.25em 1em;
+  font-size: 1em;
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>button</StyledButton>
+        <StyledButton color="red">red button</StyledButton>
+        <StyledButton color="green">green button</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+<br>
+
+## :hover {스타일}
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid palevioletred;
+  color: palevioletred;
+  margin: 0 1em;
+  padding: 0.25em 1em;
+
+  :hover {
+    border: 2px solid red;
+  }
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>버튼</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+## ::before {스타일}
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid palevioletred;
+  color: palevioletred;
+  margin: 0 1em;
+  padding: 0.25em 1em;
+
+  ::before {
+    content: '@';
+  }
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>버튼</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+<br>
+
+## &:hover {스타일}
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid palevioletred;
+  color: palevioletred;
+  margin: 0 1em;
+  padding: 0.25em 1em;
+
+  &:hover {
+    border: 2px solid red;
+  }
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>버튼</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
++ 참고: [https://sass-lang.com/documentation/style-rules/parent-selector](https://sass-lang.com/documentation/style-rules/parent-selector)
