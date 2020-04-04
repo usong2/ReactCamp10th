@@ -840,3 +840,104 @@ export default App;
 ```
 
 <br>
+
+## keyframes '키프레임'
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled, { keyframes } from 'styled-components';
+
+const slide = keyframes`
+  from {
+    margin-top: 0em;
+  }
+
+  to {
+    margin-top: 1em;
+  }
+`;
+
+const StyledButton = styled.button`
+  display: inline-block;
+  color: palevioletred;
+  font-size: 1em;
+  margin: 1em;
+  padding: 0.25em 1em;
+  border: 2px solid palevioletred;
+  border-radius: 3px;
+  animation: ${slide} 0.3s ease-in;
+`;
+
+export default StyledButton;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledButton from './components/StyledButton';
+
+function App() {
+  return (
+    <div className="App">
+      <p>
+        <StyledButton>Slide Button</StyledButton>
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+<br>
+
+## ref
+
++ input의 변화에 대한 감지
+
+```jsx
+/* src/StyledButton.jsx */
+
+import styled from 'styled-components';
+
+const StyledInput = styled.input`
+  padding: 0.5em;
+  margin: 0.5em;
+  color: palevioletred;
+  background: papayawhip;
+  border: none;
+  border-radius: 3px;
+`;
+
+export default StyledInput;
+```
+
+```jsx
+/* src/App.js */
+
+import React from 'react';
+import StyledInput from './components/StyledInput';
+
+class App extends React.Component {
+  inputRef = React.createRef();
+  render() {
+    return (
+      <div className="App">
+        <p>
+          <StyledInput
+            ref={this.inputRef}
+            placeholder="Hover to focus!"
+            onMouseEnter={() => {
+              this.inputRef.current.focus();
+            }}
+          />
+        </p>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
