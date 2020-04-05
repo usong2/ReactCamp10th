@@ -234,3 +234,195 @@ function App() {
 
 export default App;
 ```
+
+<br>
+
+## Row, Col Component
+
+### import { Row, Col } from 'antd';
+
++ 참고: [https://ant.design/components/grid/](https://ant.design/components/grid/)
+
+#### <Col span={24 중에 어느정도 차지할 지 정수} />
+
+```jsx
+/* ./src/App.js */
+
+import React from 'react';
+import { Row, Col } from 'antd';
+
+const colStyle = () => ({
+  height: 50,
+  backgroundColor: 'red',
+  opacity: Math.round(Math.random() * 10) / 10,
+});
+
+function App() {
+  return (
+    <div className="App">
+      <Row>
+        <Col span={12} style={colStyle()} />
+        <Col span={12} style={colStyle()} />
+      </Row>
+      <Row>
+        <Col span={8} style={colStyle()} />
+        <Col span={8} style={colStyle()} />
+        <Col span={8} style={colStyle()} />
+      </Row>
+      <Row>
+        <Col span={6} style={colStyle()} />
+        <Col span={6} style={colStyle()} />
+        <Col span={6} style={colStyle()} />
+        <Col span={6} style={colStyle()} />
+      </Row>
+    </div>
+  );
+}
+
+export default App;
+```
+
+#### <Row gutter={16 + 8n 의 정수} />
+
+```jsx
+/* ./src/App.js */
+
+import React from 'react';
+import { Row, Col } from 'antd';
+
+function MyCol({ span }) {
+  return (
+    <Col span={span}>
+      <div style={{ height: 50, backgroundColor: 'red', opacity: 0.7 }} />
+    </Col>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <Row gutter={16}>
+        <MyCol span={12} />
+        <MyCol span={12} />
+      </Row>
+      <Row gutter={16}>
+        <MyCol span={8} />
+        <MyCol span={8} />
+        <MyCol span={8} />
+      </Row>
+      <Row gutter={16}>
+        <MyCol span={6} />
+        <MyCol span={6} />
+        <MyCol span={6} />
+        <MyCol span={6} />
+      </Row>
+    </div>
+  );
+}
+```
+
+#### <Col offset={24 중 건너띄고 싶은 정수} />
+
+```jsx
+/* ./src/App.js */
+
+import React from 'react';
+import { Row, Col } from 'antd';
+
+function MyCol({ span, offset }) {
+  return (
+    <Col span={span} offset={offset}>
+      <div style={{ height: 50, backgroundColor: 'red', opacity: 0.7 }} />
+    </Col>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <Row gutter={16}>
+        <MyCol span={12} offset={12} />
+      </Row>
+      <Row gutter={16}>
+        <MyCol span={8} />
+        <MyCol span={8} offset={8} />
+      </Row>
+      <Row gutter={16}>
+        <MyCol span={6} />
+        <MyCol span={6} offset={3} />
+        <MyCol span={6} offset={3} />
+      </Row>
+    </div>
+  );
+}
+```
+
+#### &lt;Row type="flex" justify="좌우정렬" align="위아래정렬" /&gt;
+
++ *"start" | "center" | "end" | "space-between" | "space-around"*
+
+  *"top" | "middle" | "bottom"*
+
+```jsx
+/* ./src/App.js */
+
+import React from 'react';
+import { Row, Col } from 'antd';
+
+function MyCol({ span, offset }) {
+  const opacity = Math.round(Math.random() * 10) / 10;
+  return (
+    <Col span={span} offset={offset}>
+      <div style={{ height: 50, backgroundColor: 'red', opacity }} />
+    </Col>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <Row
+        style={{
+          height: 300,
+        }}
+        type="flex"
+        justify="start"
+        align="top"
+      >
+        <MyCol span={4} />
+        <MyCol span={4} />
+        <MyCol span={4} />
+        <MyCol span={4} />
+      </Row>
+    </div>
+  );
+}
+```
+
+## Layout
+
+### import { Layout } from 'antd';
+
++ 참고: [https://ant.design/components/layout/](https://ant.design/components/layout/)
+
+```jsx
+import React from 'react';
+import { Layout } from 'antd';
+
+const { Header, Sider, Content, Footer } = Layout;
+
+export default function App() {
+  return (
+    <div className="App">
+      <Layout>
+        <Header>Header</Header>
+        <Layout>
+          <Sider>Sider</Sider>
+          <Content>Content</Content>
+        </Layout>
+        <Footer>Footer</Footer>
+      </Layout>
+    </div>
+  );
+}
+```
