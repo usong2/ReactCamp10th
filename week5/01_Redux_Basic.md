@@ -1,0 +1,515 @@
+# Redux Basic
+
+## 컴포넌트 간 통신
+
++ 컴포넌트 사용 시에 무조건 props로만 통신이 가능
+
+### 하위 컴포넌트를 변경하기
+
+#### A의 button을 클릭하여 E를 변경하려면
+
+```jsx
+// A 컴포넌트
+<div>
+    <B />
+    <button>클릭</button>
+</div>
+```
+
+```jsx
+// B 컴포넌트
+<div>
+    <C />
+</div>
+```
+
+```jsx
+// C 컴포넌트
+<div>
+    <D />
+</div>
+```
+
+```jsx
+// D 컴포넌트
+<div>
+    <E />
+</div>
+```
+
+```jsx
+// E 컴포넌트
+<div>
+    {props.value}
+</div>
+```
+
+1. &lt;A /&gt; 컴포넌트에서 button에 onClick 이벤트를 만들고
+2. button을 클릭하면, &lt;A /&gt;의 state를 변경하여, &lt;B /&gt;로 내려주는 props를 변경
+3. &lt;B /&gt;의 props가 변경되면, &lt;C /&gt;의 props에 전달
+4. &lt;C /&gt;의 props가 변경되면, &lt;D /&gt;의 props에 전달
+5. &lt;D /&gt;의 props가 변경되면, &lt;E /&gt;의 props에 전달
+
+```jsx
+import React from "react";
+
+class A extends React.Component {
+  state = {
+    value: "아직 안바뀜"
+  };
+
+  render() {
+    console.log("A render");
+    return (
+      <div>
+        <B {...this.state} />
+        <button onClick={this._click}>E 의 값을 바꾸기</button>
+      </div>
+    );
+  }
+
+  _click = () => {
+    this.setState({
+      value: "E 의 값을 변경"
+    });
+  };
+}
+
+export default A;
+```
+
+```jsx
+const B = props => (
+  <div>
+    <p>여긴 B</p>
+    <C {...props} />
+  </div>
+);
+
+const C = props => (
+  <div>
+    <p>여긴 C</p>
+    <D {...props} />
+  </div>
+);
+
+const D = props => (
+  <div>
+    <p>여긴 D</p>
+    <E {...props} />
+  </div>
+);
+
+const E = props => (
+  <div>
+    <p>여긴 E</p>
+    <h3>{props.value}</h3>
+  </div>
+);
+```
+
+### 상위 컴포넌트를 변경하기
+
+#### E의 button을 클릭하여 A의 p를 변경하려면
+
+```jsx
+// A 컴포넌트
+<div>
+    <B />
+    <p>{state.value}</p>
+</div>
+```
+
+```jsx
+// B 컴포넌트
+<div>
+    <C />
+</div>
+```
+
+```jsx
+// C 컴포넌트
+<div>
+    <D />
+</div>
+```
+
+```jsx
+// D 컴포넌트
+<div>
+    <E />
+</div>
+```
+
+```jsx
+// E 컴포넌트
+<div>
+    <button>클릭</button>
+</div>
+```
+
+1. &lt;A /&gt;에 함수를 만들고, 그 함수 안에 state를 변경하도록 구현, 그 변경으로 인해 p 안의 내용을 변경.
+2. 만들어진 함수를 props에 넣어서, &lt;B /&gt;로 전달
+3. &lt;B /&gt;의 props의 함수를 &lt;C /&gt;의 props로 전달
+4. &lt;C /&gt;의 props의 함수를 &lt;D /&gt;의 props로 전달
+5. &lt;D /&gt;의 props의 함수를 &lt;E /&gt;의 props로 전달, &lt;E /&gt;에서 클릭하면 props로 받은 함수를 실행
+
+```jsx
+import React from "react";
+
+class A extends React.Component {
+  state = {
+    value: "아직 안바뀜"
+  };
+
+  render() {
+    console.log("A render");
+    return (
+      <div>
+        <h3>{this.state.value}</h3>
+        <B change={this.change} />
+      </div>
+    );
+  }
+
+  change = () => {
+    this.setState({
+      value: "A 의 값을 변경"
+    });
+  };
+}
+
+export default A;
+```
+
+```jsx
+const B = props => (
+  <div>
+    <p>여긴 B</p>
+    <C {...props} />
+  </div>
+);
+
+const C = props => (
+  <div>
+    <p>여긴 C</p>
+    <D {...props} />
+  </div>
+);
+
+const D = props => (
+  <div>
+    <p>여긴 D</p>
+    <E {...props} />
+  </div>
+);
+
+const E = props => {
+  function click() {
+    props.change();
+  }
+  return (
+    <div>
+      <p>여긴 E</p>
+      <button onClick={click}>클릭</button>
+    </div>
+  );
+};
+```
+
+<br>
+
+## Redux 개요
+
+### Context API
+
++ 부모가 어떠한 데이터를 가지고 있으면 자식 누구든 가져올 수 있음
++ **문제는 이렇게 코딩하여 state를 관리하기가 너무 복잡함**
++ 복잡함을 해결하기 위한 그 사이의 개념은 Redux
++ Redux는 어떤 아키텍쳐 패턴의 구현체로 엄청난 API가 없고 이렇게 작업하면 편할 것이다라는 개념
++ 이 개념을 Flux 아키텍쳐라고 함
+  참고: [http://haruair.github.io/flux/docs/overview.html](http://haruair.github.io/flux/docs/overview.html) 
++ 하지만 Redux는 Flux의 구현체이지만 완벽하게 똑같지 않음
++ Flux의 개념을 바탕으로 React에서 사용할 수 있도록 만들어 준 것이 Redux
+
+### Component - Communication
+
++ Context API와 Redux의 개념이 없다면 부모 노드로 이동했다가 자식 노드로 하나씩 이동해야함 
+  [https://cloud.protopie.io/p/irg8jMXuGov/3](https://cloud.protopie.io/p/irg8jMXuGov/3)
+
+### Component - Communication - Redux
+
++ Redux를 사용하면 store라는 개념을 하나 만들 수 있음 
++ store에는 state와 함수가 종합적으로 담겨있음
++ store에 어떠한 함수를 실행하라고 명령하면 실행하며 store가 자신의 state를 변경
++ 즉, state를 변경하는 행위를 던지면 store는 그것을 받아 state를 변경
+  [https://cloud.protopie.io/p/Ycc3KrJvjgA/2](https://cloud.protopie.io/p/Ycc3KrJvjgA/2)
+
+### Redux
+
+![https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/3964190/redux-after.png](https://s3.amazonaws.com/media-p.slid.es/uploads/640576/images/3964190/redux-after.png)
+
+### &quot;(1)단일 스토어를 만드는 법&quot;과, &quot;(2)리액트에서 스토어 사용하는 법&quot;
+
++ **단일** 스토어다!
++ [만들기] 단일 스토어 사용 준비하기
+  + import **redux**
+  + *액션* 을 정의하고,
+  + *액션* 을 사용하는 *리듀서* 를 만들고
+  + *리듀서* 들을 합친다.
+  + 최종 합쳐진 *리듀서* 를 인자로, 단일 스토어를 만든다.
++ [사용하기] 준비한 스토어를 리액트 컴포넌트에서 사용하기
+  + import **react-redux**
+  + connect 함수를 이용해서 컴포넌트에 연결
+
+<br>
+
+> store가 여러 개 있는 것은 mobX
+> mobX는 store 단위로 자신들의 로직을 정리하여 분리
+> redux는 단일 스토어가 아니므로 다른 방식으로 자신들을 분리하는데 하나의 스토어를 분리해서 쓸 수 있도록 함
+
+<br>
+
+## Redux 설치
+
++ 다른 package가 부수적으로 변하더라도 Redux 패키지는 큰 변화가 없음
++ store를 만드는 개념은 어디에서든 똑같이 사용되고 그것을 어떻게 사용되는지에 따라서 여러가지 API가 추가될 수 있음
++ 
+
+```bash
+$ npx create-react-app redux-start
+$ cd redux-start
+$ npm i redux
+```
+
+<br>
+
+## Action - 액션
+
++ 글로벌에 있는 어떤 store의 state를 변경할 때 action을 던짐
++ action은 무조건 글로벌 state를 변경할 수 있는 행위를 할 때 action을 날림
++ ex) store의 state에 loading이 있을 때 loading은 true이거나 false일 수 있음
+        false일 때 loading을 true로 변경하려면 loadingStart와 같은 action을 만들고
+        false로 변경하려면 loadingEnd와 같은 action을 만들어 던져줌
+
+<br>
+
+### 리덕스의 액션이란?
+
++ 액션은 사실 그냥 객체(object)
++ 두 가지 형태의 액션이 있음
+  + { type: 'TEST' } // payload 없는 액션
+  + { type: 'TEST', params: 'hello' } // payload 있는 액션
++ type 만이 필수 프로퍼티이며, type은 문자열
+
+### 리덕스의 액션 생성자란?
+
+```jsx
+function 액션생성자(...args) { return 액션; }
+```
+
++ 액션을 생성하는 함수를 &quot;액션 생성자 (Action Creator)&quot; 라고 함
++ 함수를 통해 액션을 생성해서, 액션 객체를 리턴
++ createTest('hello'); // { type: 'TEST', params: 'hello' } 리턴
+
+### 리덕스의 액션이 하는 일
+
++ 액션 생성자를 통해 액션을 만들어 냄
++ 만들어낸 액션 객체를 리덕스 스토어에 보냄
++ 리덕스 스토어가 액션 객체를 받으면 스토어의 상태 값이 변경
++ 변경된 상태 값에 의해 상태를 이용하고 있는 컴포넌트가 변경
++ 액션은 스토어에 보내는 일종의 인풋이라 생각할 수 있음
+
+### 액션을 준비하기 위해서는?
+
++ 액션의 타입을 정의하여 변수로 빼는 단계
+  + 강제는 아니므로 안해도 됨
+  + 그냥 타입을 문자열로 넣기에는 실수를 유발할 가능성이 큼
+  + 미리 정의한 변수를 사용하면, 스펠링 주의를 덜 기울여도 됨
++ 액션 객체를 만들어 내는 함수를 만드는 단계
+  + 하나의 액션 객체를 만들기 위해 하나의 함수를 만들어 냄
+  + 액션의 타입은 미리 정의한 타입 변수로부터 가져와서 사용
+
+### 액션 준비 코드
+
++ ./src에 actions.js 생성
+
+  ```js
+  // actions.js
+  
+  // 액션의 type 정의
+  // 액션의 타입 => 액션 생성자 이름
+  // ADD_TODO => addTodo
+  
+  export const ADD_TODO = "ADD_TODO";
+  
+  // 액션 생성자
+  // 액션의 타입은 미리 정의한 타입으로부터 가져와서 사용하며,
+  // 사용자가 인자로 주지 않습니다.
+  export function addTodo(text) {
+    return { type: ADD_TODO, text }; // { type: ADD_TODO, text: text }
+  }
+  
+  const START_LOADING = "START_LOADING"; // 액션
+  
+  const startLoading = () => ({ type: startLoading }); // 액션 생성자
+  ```
+
+<br>
+
+## Reducers - 리듀서
+
++ 액션을 만들어 던지면 스토어에서 액션을 받아 나의 state를 변경하는 일이 생기는데 이러한 일을 해주는 함수를 Reducers 함수라고 함
++ 즉, 액션을 받아 새로운 state를 리턴
+
+### 리덕스의 리듀서란?
+
++ 액션을 주면, 그 액션이 적용되어 달라진(안달라질 수도 있음) 결과를 만들어 줌.
++ 그냥 함수
+  + Pure Function
+  + Immutable(매번 새로운 레퍼런스를 가진 객체를 리턴)
+    + Why?
+      + 리듀서를 통해 스테이트가 달라졌음을 리덕스가 인지하는 방식
+
+```jsx
+function 리듀서(previusState, action) {
+    return newState;
+}
+```
+
++ 액션을 받아서 스테이트를 리턴하는 구조
++ 인자로 들어오는 previousState와 리턴되는 newState는 다른 참조를 가지도록 해야함
+
+### 리듀서 함수 만들기
+
++ ./src에 reducers.js 생성
+
+```jsx
+// reducers.js
+import { ADD_TODO } from "./actions";
+
+const initialState = [];
+
+export function todoApp(previousState = initialState, action) {
+  //   if (previousState === undefined) {
+  //     //최초
+  //     return [];
+  //   }
+  if (action.type === ADD_TODO) {
+    return [
+      ...previousState,
+      {
+        text: action.text,
+        createAt: new Date().toISOString(),
+      },
+    ];
+  }
+
+  return previousState;
+}
+```
+
+<br>
+
+## createStore
+
+*redux로 부터 import*
+
+### 스토어를 만드는 함수
+
+```jsx
+const store = createStore(리듀서);
+```
+
++ ```jsx
+  createStore<S>(
+  	reducer: Reducer<S>,
+      preloadedState: S,
+      enhancer?: StoreEnhancer<S>
+  ): Store<S>;
+  ```
+
+### 스토어 만들기
+
++ ./src에 store.js 생성
+
+  ```jsx
+  // store.js
+  
+  import { createStore } from "redux";
+  import { todoApp } from "./reducers";
+  import { addTodo } from "./actions";
+  
+  export const store = createStore(todoApp);
+  
+  // console.log(store);
+  
+  // console.log(store.getState());
+  
+  // state 변경 시에 subscribe가 불림(index.js로 코드 이동)
+  // store.subscribe(() => {
+  //   console.log(store.getState());
+  // });
+  
+  // store.dispatch(addTodo("API 만들기"));
+  ```
+
++ ./src/index.js 수정
+
+  ```jsx
+  import React from "react";
+  import ReactDOM from "react-dom";
+  import "./index.css";
+  import App from "./App";
+  import * as serviceWorker from "./serviceWorker";
+  import { store } from "./store";
+  
+  store.subscribe(() => {
+    ReactDOM.render(<App store={store} />, document.getElementById("root"));
+  });
+  
+  ReactDOM.render(<App store={store} />, document.getElementById("root"));
+  
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { addTodo } from "./actions";
+  
+  function App({ store }) {
+    function click() {
+      store.dispatch(addTodo("Hello"));
+    }
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>{JSON.stringify(store.getState())}</p>
+          <button onClick={click}>add</button>
+        </header>
+      </div>
+    );
+  }
+  
+  export default App;
+  ```
+
+### store
+
++ store.**getState()**;
++ store.dispatch(액션);, store.**dispatch(액션생성자())**;
++ const unsubscribe = store.subscribe(() => {});
+  + 리턴이 unsubscribe 라는 점!
+  + unsubscribe(); 하면 제거
++ store.replaceReducer(다른리듀서);
+
+<br>
+
