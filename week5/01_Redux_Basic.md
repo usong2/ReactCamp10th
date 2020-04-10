@@ -513,3 +513,625 @@ const store = createStore(리듀서);
 
 <br>
 
+## 로직을 추가하기
+
+*action을 정의하고, action 생성자를 만들고, reducer를 수정*
+
+### 예제
+
+#### action 정의
+
+```jsx
+// actions.js
+
+// 액션의 type 정의
+// 액션의 타입 => 액션 생성자 이름
+// ADD_TODO => addTodo
+export const ADD_TODO = 'ADD_TODO';
+export const COMPLETE_TODO = 'COMPLETE_TODO';
+
+// 액션 생산자
+// 액션의 타입은 미리 정의한 타입으로 부터 가져와서 사용하며,
+// 사용자가 인자로 주지 않습니다.
+export function addTodo(text) {
+  return { type: ADD_TODO, text }; // { type: ADD_TODO, text: text }
+}
+```
+
+#### action 생성자 생성
+
+```jsx
+// actions.js
+
+// 액션의 type 정의
+// 액션의 타입 => 액션 생성자 이름
+// ADD_TODO => addTodo
+export const ADD_TODO = 'ADD_TODO';
+export const COMPLETE_TODO = 'COMPLETE_TODO';
+
+// 액션 생산자
+// 액션의 타입은 미리 정의한 타입으로 부터 가져와서 사용하며,
+// 사용자가 인자로 주지 않습니다.
+export function addTodo(text) {
+  return { type: ADD_TODO, text }; // { type: ADD_TODO, text: text }
+}
+
+export function completeTodo(index) {
+  return { type: COMPLETE_TODO, index }; // { type: COMPLETE_TODO, index: index}
+}
+```
+
+#### reducer 수정
+
+```jsx
+import { ADD_TODO, COMPLETE_TODO } from './actions';
+
+export function todoApp(previousState, action) {
+  if (previousState === undefined) {
+    return [];
+  }
+  if (action.type === ADD_TODO) {
+    return [...previousState, { text: action.text, completed: false }];
+  }
+  if (action.type === COMPLETE_TODO) {
+    const newState = [];
+    for (let i = 0; i < previousState.length; i++) {
+      newState.push(
+        i === action.index
+          ? { ...previousState[i], completed: true }
+          : { ...previousState[i] },
+      );
+    }
+    return newState;
+  }
+  return previousState;
+}
+```
+
+#### dispatch
+
+```jsx
+// store.js
+import { todoApp } from './reducers';
+import { createStore } from 'redux';
+import { addTodo, completeTodo } from './actions';
+
+const store = createStore(todoApp);
+console.log(store);
+
+console.log(store.getState());
+
+setTimeout(() => {
+  store.dispatch(addTodo('hello'));
+  setTimeout(() => {
+    store.dispatch(completeTodo(0));
+  }, 1000);
+}, 1000);
+
+export default store;
+```
+
+### 실습
+
++ ./src/actions.js 수정
+
+  ```jsx
+  // actions.js
+  
+  // 액션의 type 정의
+  // 액션의 타입 => 액션 생성자 이름
+  // ADD_TODO => addTodo
+  
+  export const ADD_TODO = "ADD_TODO";
+  export const COMPLETE_TODO = "COMPLETE_TODO";
+  
+  // 액션 생성자
+  // 액션의 타입은 미리 정의한 타입으로부터 가져와서 사용하며,
+  // 사용자가 인자로 주지 않습니다.
+  export function addTodo(text) {
+    return { type: ADD_TODO, text }; // { type: ADD_TODO, text: text }
+  }
+  
+  export function completeTodo(index) {
+    return {
+      type: COMPLETE_TODO,
+      index,
+    };
+  }
+  
+  export const START_LOADING = "START_LOADING"; // 액션
+  
+  export const startLoading = () => ({ type: START_LOADING }); // 액션 생성자
+  ```
+
++ ./src/reducers.js 수정
+
+  ```jsx
+  // reducers.js
+  
+  import { ADD_TODO, COMPLETE_TODO } from "./actions";
+  
+  const initialState = [];
+  
+  export function todoApp(previousState = initialState, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === ADD_TODO) {
+      return [
+        ...previousState,
+        {
+          text: action.text,
+          createAt: new Date().toISOString(),
+          done: false,
+        },
+      ];
+    } else if (action.type === COMPLETE_TODO) {
+      console.log(action);
+      const { index } = action;
+      // 원래 스테이트에 index 번째 있는 객체의 done을 true로 바꾸고, 새로운 배열을 리턴
+      const newState = [...previousState];
+      for (let i = 0; i <= newState.length; i++) {
+        newState[index] = {
+          ...newState[index],
+          done: true,
+        };
+        return newState;
+      }
+    }
+  
+    return previousState;
+  }
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { addTodo, completeTodo } from "./actions";
+  
+  function App({ store }) {
+    const inputRef = React.createRef();
+    function click() {
+      const text = inputRef.current.value;
+      console.log(text);
+      store.dispatch(addTodo(text));
+    }
+    const todos = store.getState();
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            <input ref={inputRef} />
+            <button onClick={click}>add</button>
+          </p>
+          <ul>
+            {todos.map((todo, index) => (
+              <div key={index}>
+                <h2>
+                  {todo.text}{" "}
+                  {todo.done ? (
+                    "(완료)"
+                  ) : (
+                    <button
+                      onClick={() => {
+                        console.log(index);
+                        store.dispatch(completeTodo(index));
+                      }}
+                    >
+                      끝!
+                    </button>
+                  )}
+                </h2>
+              </div>
+            ))}
+          </ul>
+        </header>
+      </div>
+    );
+  }
+  
+  export default App;
+  ```
+  
+
+### 애플리케이션이 커지면, state가 복잡해짐
+
+```jsx
+[
+    {
+        text: 'Hello',
+        completed: false
+    }
+]
+```
+
+↓
+
+```jsx
+{
+  todos: [
+    {
+      text: 'Hello',
+      completed: false
+    }
+  ],
+  filter: 'SHOW_ALL'
+}
+```
+
++ 리듀서를 크게 만들고, state를 변경하는 모든 로직을 담을 수도 있음
++ 리듀서를 분할해서 만들고, 합치는 방법을 사용할 수 있음
+  + **todos**만 변경하는 **액션들**을 처리하는 **A**라는 리듀서 함수를 만들고
+  + **filter**만을 변경하는 **액션들**을 처리하는 **B**라는 리듀서 함수를 만들고 
+  + **A**와 **B**를 합침
+
+<br>
+
+### 한 번에 다하는 리듀서
+
+```jsx
+import { ADD_TODO, COMPLETE_TODO } from './actions';
+
+export function todoApp(previousState, action) {
+  if (previousState === undefined) {
+    return { todos: [], filter: 'SHOW_ALL' };
+  }
+  if (action.type === ADD_TODO) {
+    return {
+      todos: [...previousState.todos, { text: action.text, completed: false }],
+      filter: previousState.filter,
+    };
+  }
+  if (action.type === COMPLETE_TODO) {
+    const todos = [];
+    for (let i = 0; i < previousState.todos.length; i++) {
+      todos.push(
+        i === action.index
+          ? { ...previousState.todos[i], completed: true }
+          : { ...previousState.todos[i] },
+      );
+    }
+    return { todos, filter: previousState.filter };
+  }
+  return previousState;
+}
+```
+
+### 실습
+
++ ./src/actions.js 수정
+
+  ```jsx
+  // actions.js
+  
+  // 액션의 type 정의
+  // 액션의 타입 => 액션 생성자 이름
+  // ADD_TODO => addTodo
+  
+  export const ADD_TODO = "ADD_TODO";
+  export const COMPLETE_TODO = "COMPLETE_TODO";
+  
+  // 액션 생성자
+  // 액션의 타입은 미리 정의한 타입으로부터 가져와서 사용하며,
+  // 사용자가 인자로 주지 않습니다.
+  export function addTodo(text) {
+    return { type: ADD_TODO, text }; // { type: ADD_TODO, text: text }
+  }
+  
+  export function completeTodo(index) {
+    return {
+      type: COMPLETE_TODO,
+      index,
+    };
+  }
+  
+  export const START_LOADING = "START_LOADING"; // 액션
+  export const END_LOADING = "END_LOADING"; // 액션
+  
+  export const startLoading = () => ({ type: START_LOADING }); // 액션 생성자
+  export const endLoading = () => ({ type: END_LOADING }); // 액션 생성자
+  ```
+
++ ./src/reducers.js 수정
+
+  ```jsx
+  // reducers.js
+  
+  import { ADD_TODO, COMPLETE_TODO, START_LOADING, END_LOADING } from "./actions";
+  
+  const initialState = {
+    todos: [],
+    isLoading: false,
+  };
+  
+  export function todoApp(previousState = initialState, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === ADD_TODO) {
+      return {
+        ...previousState,
+        todos: [
+          ...previousState.todos,
+          {
+            text: action.text,
+            createAt: new Date().toISOString(),
+            done: false,
+          },
+        ],
+      };
+    } else if (action.type === COMPLETE_TODO) {
+      const { index } = action;
+      // 원래 스테이트에 index 번째 있는 객체의 done을 true로 바꾸고, 새로운 배열을 리턴
+      const newState = {
+        ...previousState,
+      };
+      newState.todos[index] = {
+        ...newState.todos[index],
+        done: true,
+      };
+      return newState;
+    } else if (action.type === START_LOADING) {
+      return {
+        ...previousState,
+        isLoading: true,
+      };
+    } else if (action.type === END_LOADING) {
+      return {
+        ...previousState,
+        isLoading: false,
+      };
+    }
+    return previousState;
+  }
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { addTodo, completeTodo } from "./actions";
+  
+  function App({ store }) {
+    const inputRef = React.createRef();
+    function click() {
+      const text = inputRef.current.value;
+      console.log(text);
+      store.dispatch(addTodo(text));
+    }
+    const todos = store.getState().todos;
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            <input ref={inputRef} />
+            <button onClick={click}>add</button>
+          </p>
+          <ul>
+            {todos.map((todo, index) => (
+              <div key={index}>
+                <h2>
+                  {todo.text}{" "}
+                  {todo.done ? (
+                    "(완료)"
+                  ) : (
+                    <button
+                      onClick={() => {
+                        console.log(index);
+                        store.dispatch(completeTodo(index));
+                      }}
+                    >
+                      끝!
+                    </button>
+                  )}
+                </h2>
+              </div>
+            ))}
+          </ul>
+        </header>
+      </div>
+    );
+  }
+  
+  export default App;
+  ```
+
+### 리듀서 분리
+
+```jsx
+export function todos(previousState, action) {
+  if (previousState === undefined) {
+    return [];
+  }
+  if (action.type === ADD_TODO) {
+    return [...previousState.todos, { text: action.text, completed: false }];
+  }
+  if (action.type === COMPLETE_TODO) {
+    const newState = [];
+    for (let i = 0; i < previousState.length; i++) {
+      newState.push(
+        i === action.index
+          ? { ...previousState[i], completed: true }
+          : { ...previousState[i] },
+      );
+    }
+    return newState;
+  }
+  return previousState;
+}
+
+export function filter(previousState, action) {
+  if (previousState === undefined) {
+    return 'SHOW_ALL';
+  }
+  return previousState;
+}
+```
+
+### 실습
+
++ ./src/reducers.js 수정
+
+  ```jsx
+  // reducers.js
+  import { ADD_TODO, COMPLETE_TODO, START_LOADING, END_LOADING } from "./actions";
+  
+  const initialTodos = [];
+  
+  export function todos(previousState = initialTodos, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === ADD_TODO) {
+      return [
+        ...previousState,
+        {
+          text: action.text,
+          createAt: new Date().toISOString(),
+          done: false,
+        },
+      ];
+    } else if (action.type === COMPLETE_TODO) {
+      const { index } = action;
+      // 원래 스테이트에 index 번째 있는 객체의 done을 true로 바꾸고, 새로운 배열을 리턴
+      const newState = [...previousState];
+      newState[index] = {
+        ...newState[index],
+        done: true,
+      };
+      return newState;
+    }
+    return previousState;
+  }
+  
+  const initialLoading = false;
+  
+  export function loading(previousState = initialLoading, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === START_LOADING) {
+      return true;
+    } else if (action.type === END_LOADING) {
+      return false;
+    }
+    return previousState;
+  }
+  ```
+
+### 리듀서 합치기
+
+```jsx
+export function todoApp(previousState = {}, action) {
+  return {
+    todos: todos(previousState.todos, action),
+    filter: filter(previousState.filter, action),
+  };
+}
+```
+
+### 실습
+
++ ./src/reducers.js 수정
+
+  ```jsx
+  // reducers.js
+  import { ADD_TODO, COMPLETE_TODO, START_LOADING, END_LOADING } from "./actions";
+  
+  const initialTodos = [];
+  
+  export function todoApp(previousState = {}, action) {
+    return {
+      todos: todos(previousState.todos, action),
+      loading: loading(previousState.loading, action),
+    };
+  }
+  
+  export function todos(previousState = initialTodos, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === ADD_TODO) {
+      return [
+        ...previousState,
+        {
+          text: action.text,
+          createAt: new Date().toISOString(),
+          done: false,
+        },
+      ];
+    } else if (action.type === COMPLETE_TODO) {
+      const { index } = action;
+      // 원래 스테이트에 index 번째 있는 객체의 done을 true로 바꾸고, 새로운 배열을 리턴
+      const newState = [...previousState];
+      newState[index] = {
+        ...newState[index],
+        done: true,
+      };
+      return newState;
+    }
+    return previousState;
+  }
+  
+  const initialLoading = false;
+  
+  export function loading(previousState = initialLoading, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === START_LOADING) {
+      return true;
+    } else if (action.type === END_LOADING) {
+      return false;
+    }
+    return previousState;
+  }
+  ```
+
+<br>
+
+## combineReducers
+
+### 리덕스에서 제공하는 combineReducers 사용
+
+```jsx
+import { combineReducers } from 'redux';
+
+const todoApp = combineReducers({
+  todos,
+  filter,
+});
+```
+
+### 실습
+
++ ./src/reducers.js 수정
+
+  ```jsx
+  
+  ```
+
++ ./src/store.js 수정
+
+  ```jsx
+  
+  ```
+
+  
