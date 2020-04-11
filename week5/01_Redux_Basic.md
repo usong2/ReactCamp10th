@@ -1608,6 +1608,134 @@ ReactDOM.render(
 serviceWorker.unregister();
 ```
 
+### Consumer from react-redux
+
+```jsx
+import React, { useContext, useEffect, useState } from 'react';
+import { ReactReduxContext } from 'react-redux';
+import './App.css';
+import { addTodo } from './actions';
+import Button from './Button';
+
+class App extends React.Component {
+  render() {
+    console.log(this.props);
+    return (
+      <div className="App">
+        <header className="App-header">
+          <p>{JSON.stringify(this.props.todos)}</p>
+          <Button add={this.props.add} />
+        </header>
+      </div>
+    );
+  }
+}
+```
+
+```jsx
+import React from 'react';
+
+export default function Button({ add }) {
+  return <button onClick={() => add('hello')}>추가</button>;
+}
+```
+
+```jsx
+function AppContainer(props) {
+  const { store } = useContext(ReactReduxContext);
+  const [state, setState] = useState(store.getState());
+  function add(text, dispatch) {
+    console.log(text, dispatch);
+    dispatch(addTodo(text));
+  }
+  useEffect(() => {
+    const _unsubscribe = store.subscribe(() => {
+      setState(store.getState());
+    });
+    return () => {
+      _unsubscribe();
+    };
+  });
+  return (
+    <App
+      {...props}
+      todos={state.todos}
+      add={text => add(text, store.dispatch)}
+    />
+  );
+}
+
+export default AppContainer;
+```
+
+### connect function from react-redux
+
+```jsx
+import React from 'react';
+import './App.css';
+import { addTodo } from './actions';
+import { connect } from 'react-redux';
+import Button from './Button';
+
+class App extends React.Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <p>{JSON.stringify(this.props.todos)}</p>
+          <Button add={this.props.add} />
+        </header>
+      </div>
+    );
+  }
+}
+```
+
+```jsx
+import React from 'react';
+
+export default function Button({ add }) {
+  return <button onClick={() => add('hello')}>추가</button>;
+}
+```
+
+```jsx
+const mapStateToProps = state => {
+  return { todos: state.todos };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    add: text => {
+      dispatch(addTodo(text));
+    },
+  };
+};
+
+const AppContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(App);
+
+export default AppContainer;
+```
+
+### mapStateToProps, mapDispatchToProps
+
+```jsx
+const mapStateToProps = state => {
+  return { todos: state.todos };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    add: text => {
+      dispatch(addTodo(text));
+    },
+  };
+};
+```
+
 ### 실습
 
 + ./src/index.js 수정
@@ -1733,4 +1861,10 @@ serviceWorker.unregister();
   ```
 
 <br>
+
+참고: [https://react-redux.js.org/](https://react-redux.js.org/)
+
+<br>
+
+## Hook으로 react-redux 다루기
 
