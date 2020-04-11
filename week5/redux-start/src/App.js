@@ -3,48 +3,55 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { addTodo, completeTodo } from "./actions";
+import { completeTodo } from "./actions";
+import TodoForm from "./components/TodoForm";
+import { connect } from "react-redux";
 
-function App({ store }) {
-  const inputRef = React.createRef();
-  function click() {
-    const text = inputRef.current.value;
-    console.log(text);
-    store.dispatch(addTodo(text));
+class App extends React.Component {
+  render() {
+    const { todos, completeTodo } = this.props;
+    console.log(todos);
+
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <TodoForm />
+          <ul>
+            {todos.map((todo, index) => (
+              <div key={index}>
+                <h2>
+                  {todo.text}{" "}
+                  {todo.done ? (
+                    "(완료)"
+                  ) : (
+                    <button
+                      onClick={() => {
+                        console.log(index);
+                        completeTodo(index);
+                      }}
+                    >
+                      끝!
+                    </button>
+                  )}
+                </h2>
+              </div>
+            ))}
+          </ul>
+        </header>
+      </div>
+    );
   }
-  const todos = store.getState().todos;
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          <input ref={inputRef} />
-          <button onClick={click}>add</button>
-        </p>
-        <ul>
-          {todos.map((todo, index) => (
-            <div key={index}>
-              <h2>
-                {todo.text}{" "}
-                {todo.done ? (
-                  "(완료)"
-                ) : (
-                  <button
-                    onClick={() => {
-                      console.log(index);
-                      store.dispatch(completeTodo(index));
-                    }}
-                  >
-                    끝!
-                  </button>
-                )}
-              </h2>
-            </div>
-          ))}
-        </ul>
-      </header>
-    </div>
-  );
 }
 
-export default App;
+const mapStateToProps = (state) => ({
+  todos: state.todos,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  completeTodo: (index) => {
+    dispatch(completeTodo(index));
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

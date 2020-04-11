@@ -690,11 +690,13 @@ export default store;
   ```jsx
   // App.js
   
+  ```
+
 import React from "react";
   import logo from "./logo.svg";
   import "./App.css";
   import { addTodo, completeTodo } from "./actions";
-  
+
   function App({ store }) {
     const inputRef = React.createRef();
     function click() {
@@ -736,21 +738,21 @@ import React from "react";
       </div>
     );
   }
-  
+
   export default App;
   ```
   
 
 ### 애플리케이션이 커지면, state가 복잡해짐
 
-```jsx
+​```jsx
 [
     {
         text: 'Hello',
         completed: false
     }
 ]
-```
+  ```
 
 ↓
 
@@ -1125,13 +1127,610 @@ const todoApp = combineReducers({
 + ./src/reducers.js 수정
 
   ```jsx
+  // reducers.js
   
+  import { ADD_TODO, COMPLETE_TODO, START_LOADING, END_LOADING } from "./actions";
+  import { combineReducers } from "redux";
+  
+  const initialTodos = [];
+  
+  export function todoApp(previousState = {}, action) {
+    return {
+      todos: todos(previousState.todos, action),
+      loading: loading(previousState.loading, action),
+    };
+  }
+  
+  export function todos(previousState = initialTodos, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === ADD_TODO) {
+      return [
+        ...previousState,
+        {
+          text: action.text,
+          createAt: new Date().toISOString(),
+          done: false,
+        },
+      ];
+    } else if (action.type === COMPLETE_TODO) {
+      const { index } = action;
+      // 원래 스테이트에 index 번째 있는 객체의 done을 true로 바꾸고, 새로운 배열을 리턴
+      const newState = [...previousState];
+      newState[index] = {
+        ...newState[index],
+        done: true,
+      };
+      return newState;
+    }
+    return previousState;
+  }
+  
+  const initialLoading = false;
+  
+  export function loading(previousState = initialLoading, action) {
+    //   if (previousState === undefined) {
+    //     //최초
+    //     return [];
+    //   }
+    if (action.type === START_LOADING) {
+      return true;
+    } else if (action.type === END_LOADING) {
+      return false;
+    }
+    return previousState;
+  }
+  
+  export const reducers = combineReducers({
+    todos: todos,
+    loading: loading,
+  });
   ```
 
 + ./src/store.js 수정
 
   ```jsx
+  // store.js
   
+  import { createStore } from "redux";
+  import { reducers } from "./reducers";
+  // import { addTodo } from "./actions";
+  
+  export const store = createStore(reducers);
+  
+  // console.log(store);
+  
+  // console.log(store.getState());
+  
+  // state 변경 시에 subscribe가 불림(index.js로 코드 이동)
+  // store.subscribe(() => {
+  //   console.log(store.getState());
+  // });
+  
+  // store.dispatch(addTodo("API 만들기"));
   ```
 
+<br>
+
+## Redux를 React에 연결 - react-redux 無
+
+*react-redux 안쓰고 연결*
+
+1. 단일 store를 만들고
+2. subscribe와 getState를 이용하여
+3. 변경되는 state 데이터를 얻어
+4. props로 계속 아래로 전달
+
++ componentDidMount - subscribe
++ componentWillUnmount - unsubscribe
+
+
+
+### 실습
+
++ ./src/index.js 수정
+
+  ```jsx
+  import React from "react";
+  import ReactDOM from "react-dom";
+  import "./index.css";
+  import App from "./App";
+  import * as serviceWorker from "./serviceWorker";
+  import { store } from "./store";
   
+  ReactDOM.render(<App store={store} />, document.getElementById("root"));
+  
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { addTodo, completeTodo } from "./actions";
+  
+  class App extends React.Component {
+    state = this.props.store.getState();
+    inputRef = React.createRef();
+    click = () => {
+      const text = this.inputRef.current.value;
+      console.log(text);
+      this.props.store.dispatch(addTodo(text));
+    };
+  
+    unsubscribe;
+  
+    componentDidMount() {
+      this.unsubscribe = this.props.store.subscribe(() => {
+        const state = this.props.store.getState();
+        this.setState(state);
+      });
+    }
+  
+    componentWillUnmount() {
+      this.unsubscribe();
+    }
+  
+    render() {
+      const { todos } = this.state;
+      console.log(todos);
+  
+      return (
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <p>
+              <input ref={this.inputRef} />
+              <button onClick={this.click}>add</button>
+            </p>
+            <ul>
+              {todos.map((todo, index) => (
+                <div key={index}>
+                  <h2>
+                    {todo.text}{" "}
+                    {todo.done ? (
+                      "(완료)"
+                    ) : (
+                      <button
+                        onClick={() => {
+                          console.log(index);
+                          this.props.store.dispatch(completeTodo(index));
+                        }}
+                      >
+                        끝!
+                      </button>
+                    )}
+                  </h2>
+                </div>
+              ))}
+            </ul>
+          </header>
+        </div>
+      );
+    }
+  }
+  
+  export default App;
+  ```
+
+<br>
+
+> store를 직접 props로 넣어주지 않고 어디서든 빼서 사용할 수 있다면 독립적으로 redux를 사용할 수 있는 상태가 될 수 있음
+
+<br>
+
+## ContextAPI
+
++ 참고: [https://ko.reactjs.org/docs/context.html](https://ko.reactjs.org/docs/context.html)
+
+### useContext
+
+```jsx
+import React from 'react';
+
+const ReduxContext = React.createContext();
+
+export default ReduxContext;
+```
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App2';
+import * as serviceWorker from './serviceWorker';
+import store from './store';
+import ReduxContext from './context';
+
+ReactDOM.render(
+  <ReduxContext.Provider value={store}>
+    <App />
+  </ReduxContext.Provider>,
+  document.getElementById('root'),
+);
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.unregister();
+```
+
+```jsx
+import React, { useContext } from 'react';
+import './App.css';
+import { addTodo } from './actions';
+import ReduxContext from './context';
+import Button from './Button';
+
+class App extends React.Component {
+  static contextType = ReduxContext;
+  _unsubscribe;
+  state = this.context.getState();
+  componentDidMount() {
+    this._unsubscribe = this.context.subscribe(() => {
+      this.setState(this.context.getState());
+    });
+  }
+  componentWillUnmount() {
+    this._unsubscribe();
+  }
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <p>{JSON.stringify(this.state)}</p>
+          <Button />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+```jsx
+import React, { useContext } from 'react';
+import { addTodo } from './actions';
+import ReduxContext from './context';
+
+export default function Button() {
+  const store = useContext(ReduxContext);
+  return (
+    <button
+      onClick={() => {
+        store.dispatch(addTodo('Hello'));
+      }}
+    >
+      추가
+    </button>
+  );
+}
+```
+
+### 실습
+
++ ./src에 contexts 폴더 생성
+
++ ./src/contexts에 ReduxContext.js 생성
+
+  ```jsx
+  // ReduxContext.js 
+  
+  import React from "react";
+  
+  const ReduxContext = React.createContext();
+  
+  export default ReduxContext;
+  ```
+
++ ./src/index.js 수정
+
+  ```jsx
+  // index.js
+  
+  import React from "react";
+  import ReactDOM from "react-dom";
+  import "./index.css";
+  import App from "./App";
+  import * as serviceWorker from "./serviceWorker";
+  import { store } from "./store";
+  import ReduxContext from "./contexts/ReduxContext";
+  
+  ReactDOM.render(
+    <ReduxContext.Provider value={store}>
+      <App />
+    </ReduxContext.Provider>,
+    document.getElementById("root")
+  );
+  
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { completeTodo } from "./actions";
+  import ReduxContext from "./contexts/ReduxContext";
+  import TodoForm from "./components/TodoForm";
+  
+  class App extends React.Component {
+    static contextType = ReduxContext;
+  
+    state = this.context.getState();
+  
+    unsubscribe;
+  
+    componentDidMount() {
+      this.unsubscribe = this.context.subscribe(() => {
+        const state = this.context.getState();
+        this.setState(state);
+      });
+    }
+  
+    componentWillUnmount() {
+      this.unsubscribe();
+    }
+  
+    render() {
+      const { todos } = this.state;
+      console.log(todos);
+  
+      return (
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <TodoForm />
+            <ul>
+              {todos.map((todo, index) => (
+                <div key={index}>
+                  <h2>
+                    {todo.text}{" "}
+                    {todo.done ? (
+                      "(완료)"
+                    ) : (
+                      <button
+                        onClick={() => {
+                          console.log(index);
+                          this.context.dispatch(completeTodo(index));
+                        }}
+                      >
+                        끝!
+                      </button>
+                    )}
+                  </h2>
+                </div>
+              ))}
+            </ul>
+          </header>
+        </div>
+      );
+    }
+  }
+  
+  export default App;
+  ```
+
++ ./src에 components 폴더 생성
+
++ ./src/components/TodoForm.jsx 생성
+
+  ```jsx
+  // TodoForm.jsx
+  
+  import React, { useContext } from "react";
+  import { addTodo } from "../actions";
+  import ReduxContext from "../contexts/ReduxContext";
+  
+  const TodoForm = () => {
+    const inputRef = React.createRef();
+    const context = useContext(ReduxContext);
+    function click() {
+      const text = inputRef.current.value;
+      console.log(text);
+      context.dispatch(addTodo(text));
+    }
+    return (
+      <div
+        style={{
+          border: "1px solid red",
+        }}
+      >
+        <input ref={inputRef} />
+        <button onClick={click}>add</button>
+      </div>
+    );
+  };
+  
+  export default TodoForm;
+  ```
+
+
+<br>
+
+## Redux를 React에 연결 - react-redux 有
+
+*react-redux 쓰고 연결*
+
++ Provider 컴포넌트를 제공
++ connect 함수를 통해 "컨테이너"를 만들어줌
+  + 컨테이너는 스토어의 state와 dispatch(액션)를 연결한 컴포넌트에 props로 넣어주는 역할
+  + 그렇다면 필요한 것은?
+    + 어떤 state를 어떤 props에 연결할 것인지에 대한 정의
+    + 어떤 dispatch(액션)을 어떤 props에 연결할 것인지에 대한 정의
+    + 그 props를 보낼 컴포넌트를 정의
+
+<br>
+
+```bash
+npm i react-redux
+```
+
+### Provider Component from react-redux
+
+```jsx
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App3';
+import * as serviceWorker from './serviceWorker';
+import store from './store';
+import { Provider } from 'react-redux';
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root'),
+);
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.unregister();
+```
+
+### 실습
+
++ ./src/index.js 수정
+
+  ```jsx
+  import React from "react";
+  import ReactDOM from "react-dom";
+  import "./index.css";
+  import App from "./App";
+  import * as serviceWorker from "./serviceWorker";
+  import { store } from "./store";
+  import { Provider } from "react-redux";
+  
+  ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    document.getElementById("root")
+  );
+  
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
+  ```
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { completeTodo } from "./actions";
+  import TodoForm from "./components/TodoForm";
+  import { connect } from "react-redux";
+  
+  class App extends React.Component {
+    render() {
+      const { todos, completeTodo } = this.props;
+      console.log(todos);
+  
+      return (
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <TodoForm />
+            <ul>
+              {todos.map((todo, index) => (
+                <div key={index}>
+                  <h2>
+                    {todo.text}{" "}
+                    {todo.done ? (
+                      "(완료)"
+                    ) : (
+                      <button
+                        onClick={() => {
+                          console.log(index);
+                          completeTodo(index);
+                        }}
+                      >
+                        끝!
+                      </button>
+                    )}
+                  </h2>
+                </div>
+              ))}
+            </ul>
+          </header>
+        </div>
+      );
+    }
+  }
+  
+  const mapStateToProps = (state) => ({
+    todos: state.todos,
+  });
+  
+  const mapDispatchToProps = (dispatch) => ({
+    completeTodo: (index) => {
+      dispatch(completeTodo(index));
+    },
+  });
+  
+  export default connect(mapStateToProps, mapDispatchToProps)(App);
+  ```
+
++ ./src/components/TodoForm.jsx 수정
+
+  ```jsx
+  import React from "react";
+  import { addTodo } from "../actions";
+  import { connect } from "react-redux";
+  
+  const TodoForm = ({ addTodo }) => {
+    const inputRef = React.createRef();
+    function click() {
+      const text = inputRef.current.value;
+      console.log(text);
+      addTodo(text);
+    }
+    return (
+      <div
+        style={{
+          border: "1px solid red",
+        }}
+      >
+        <input ref={inputRef} />
+        <button onClick={click}>add</button>
+      </div>
+    );
+  };
+  
+  export default connect(
+    () => ({}),
+    (dispatch) => ({
+      addTodo: (text) => {
+        dispatch(addTodo(text));
+      },
+    })
+  )(TodoForm);
+  ```
+
+<br>
+
