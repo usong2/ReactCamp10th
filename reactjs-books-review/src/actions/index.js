@@ -1,11 +1,9 @@
-export const ADD_BOOKS = "ADD_BOOKS";
+export const SET_BOOKS = "SET_BOOKS";
 
-export function addBooks(books) {
-  return {
-    type: ADD_BOOKS,
-    books,
-  };
-}
+export const setBooks = (books) => ({
+  type: SET_BOOKS,
+  books,
+});
 
 export const START_LOADING = "START_LOADING";
 export const END_LOADING = "END_LOADING";
