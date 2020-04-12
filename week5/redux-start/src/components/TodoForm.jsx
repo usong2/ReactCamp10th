@@ -1,13 +1,14 @@
 import React from "react";
 import { addTodo } from "../actions";
-import { connect } from "react-redux";
+import { useDispatch } from "react-redux";
 
-const TodoForm = ({ addTodo }) => {
+const TodoForm = () => {
+  const dispatch = useDispatch();
   const inputRef = React.createRef();
   function click() {
     const text = inputRef.current.value;
     console.log(text);
-    addTodo(text);
+    dispatch(addTodo(text));
   }
   return (
     <div
@@ -21,11 +22,4 @@ const TodoForm = ({ addTodo }) => {
   );
 };
 
-export default connect(
-  () => ({}),
-  (dispatch) => ({
-    addTodo: (text) => {
-      dispatch(addTodo(text));
-    },
-  })
-)(TodoForm);
+export default TodoForm;

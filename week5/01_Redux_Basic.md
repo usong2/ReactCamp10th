@@ -1868,3 +1868,193 @@ const mapDispatchToProps = dispatch => {
 
 ## Hook으로 react-redux 다루기
 
+### react-redux 앱에서 hook 사용
+
+```jsx
+const store = createStore(rootReducer)
+
+ReactDom.render(
+	<Provider store={store}>
+    	<App />
+    </Provider>
+    document.getElementById('root')
+)
+```
+
+### useSelector()
+
+#### 기본 사용법
+
+```jsx
+import React from 'react'
+import { useSelector } from 'react-redux'
+
+export const CounterComponent = () => {
+  const counter = useSelector(state => state.counter)
+  return <div>{counter}</div>
+}
+```
+
+#### 실습
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { completeTodo } from "./actions";
+  import TodoForm from "./components/TodoForm";
+  import { useSelector } from "react-redux";
+  
+  const App = () => {
+    const todos = useSelector((state) => state.todos);
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <TodoForm />
+          <ul>
+            {todos.map((todo, index) => (
+              <div key={index}>
+                <h2>
+                  {todo.text}{" "}
+                  {todo.done ? (
+                    "(완료)"
+                  ) : (
+                    <button
+                      onClick={() => {
+                        console.log(index);
+                        completeTodo(index);
+                      }}
+                    >
+                      끝!
+                    </button>
+                  )}
+                </h2>
+              </div>
+            ))}
+          </ul>
+        </header>
+      </div>
+    );
+  };
+  
+  // const mapStateToProps = (state) => ({
+  //   todos: state.todos,
+  // });
+  
+  // const mapDispatchToProps = (dispatch) => ({
+  //   completeTodo: (index) => {
+  //     dispatch(completeTodo(index));
+  //   },
+  // });
+  
+  export default App;
+  ```
+
+### useDispatch()
+
+```bash
+const dispatch = useDispatch()
+```
+
+#### 실습
+
++ ./src/App.js 수정
+
+  ```jsx
+  // App.js
+  
+  import React from "react";
+  import logo from "./logo.svg";
+  import "./App.css";
+  import { completeTodo } from "./actions";
+  import TodoForm from "./components/TodoForm";
+  import { useSelector, useDispatch } from "react-redux";
+  
+  const App = () => {
+    const todos = useSelector((state) => state.todos);
+    const dispatch = useDispatch();
+  
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <TodoForm />
+          <ul>
+            {todos.map((todo, index) => (
+              <div key={index}>
+                <h2>
+                  {todo.text}{" "}
+                  {todo.done ? (
+                    "(완료)"
+                  ) : (
+                    <button
+                      onClick={() => {
+                        console.log(index);
+                        dispatch(completeTodo(index));
+                      }}
+                    >
+                      끝!
+                    </button>
+                  )}
+                </h2>
+              </div>
+            ))}
+          </ul>
+        </header>
+      </div>
+    );
+  };
+  
+  // const mapStateToProps = (state) => ({
+  //   todos: state.todos,
+  // });
+  
+  // const mapDispatchToProps = (dispatch) => ({
+  //   completeTodo: (index) => {
+  //     dispatch(completeTodo(index));
+  //   },
+  // });
+  
+  export default App;
+  ```
+
++ ./src/components/TodoForm.jsx 수정
+
+  ```jsx
+  // TodoForm.jsx
+  
+  import React from "react";
+  import { addTodo } from "../actions";
+  import { useDispatch } from "react-redux";
+  
+  const TodoForm = () => {
+    const dispatch = useDispatch();
+    const inputRef = React.createRef();
+    function click() {
+      const text = inputRef.current.value;
+      console.log(text);
+      dispatch(addTodo(text));
+    }
+    return (
+      <div
+        style={{
+          border: "1px solid red",
+        }}
+      >
+        <input ref={inputRef} />
+        <button onClick={click}>add</button>
+      </div>
+    );
+  };
+  
+  export default TodoForm;
+  ```
+
+  
+
+참고: [https://react-redux.js.org/api/hooks](https://react-redux.js.org/api/hooks)
