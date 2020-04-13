@@ -2422,7 +2422,20 @@ $ npm i connected-react-router
   ```jsx
   // ./src/services/LoginService.js
   
+  import axios from "axios";
   
+  export default class LoginService {
+    static login = (email, password) =>
+      axios.post("https://api.marktube.tv/v1/me", {
+        email,
+        password,
+      });
+  
+    static logout = (token) =>
+      axios.delete("https://api.marktube.tv/v1/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  }
   ```
 
 + ./src/services에 BookService.js 생성
@@ -2430,7 +2443,34 @@ $ npm i connected-react-router
   ```jsx
   // ./src/services/BookService.js
   
+  import axios from "axios";
   
+  export default class BookService {
+    static getBooks = (token) =>
+      axios.get("https://api.marktube.tv/v1/book", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+    static getBook = (token) =>
+      axios.get("https://api.marktube.tv/v1/book", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+    static deleteBook = (token, id) =>
+      axios.delete("https://api.marktube.tv/v1/book", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+    static editBook = (token, id) =>
+      axios.patch("https://api.marktube.tv/v1/book", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+    static addBook = (token, book) =>
+      axios.post("https://api.marktube.tv/v1/book", book, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  }
   ```
 
 + ./src/actions/index.js  수정
@@ -2438,7 +2478,107 @@ $ npm i connected-react-router
   ```jsx
   // ./src/actions/index.js 
   
+  import { push } from "connected-react-router";
+  import BookService from "../services/BookService";
+import LoginService from "../services/LoginService";
+  import { message } from "antd";
   
+  export const SET_BOOKS = "SET_BOOKS";
+  
+  const setBooks = (books) => ({
+    type: SET_BOOKS,
+    books,
+  });
+  
+  export const START_LOADING = "START_LOADING";
+  export const END_LOADING = "END_LOADING";
+  
+  export function startLoading() {
+    return {
+      type: START_LOADING,
+    };
+  }
+  
+  export function endLoading() {
+    return {
+      type: END_LOADING,
+    };
+  }
+  
+  export const SET_ERROR = "SET_ERROR";
+  export const CLEAR_ERROR = "CLEAR_ERROR";
+  
+  export const setError = (error) => ({
+    type: SET_ERROR,
+    error,
+  });
+  
+  export const clearError = () => ({
+    type: CLEAR_ERROR,
+  });
+  
+  // thunk
+  export const setBooksThunk = (token) => async (dispatch) => {
+    dispatch(startLoading());
+    dispatch(clearError());
+  
+    try {
+      const res = await BookService.getBooks(token);
+      dispatch(setBooks(res.data));
+      dispatch(endLoading());
+    } catch (error) {
+      console.log(error);
+      dispatch(setError(error));
+      dispatch(endLoading());
+    }
+  };
+  
+  export const BOOKS = "BOOKS";
+  export const BOOKS_PENDING = "BOOKS_PENDING";
+  export const BOOKS_FULFILLED = "BOOKS_FULFILLED";
+  export const BOOKS_REJECTED = "BOOKS_REJECTED";
+  
+  // promise
+  export const setBooksPromise = (token) => ({
+    type: BOOKS,
+    payload: BookService.getBooks(token),
+  });
+  
+  // token
+  export const SET_TOKEN = "SET_TOKEN";
+  export const REMOVE_TOKEN = "REMOVE_TOKEN";
+  
+  export const setToken = (token) => ({
+    type: SET_TOKEN,
+    token,
+  });
+  
+  export const removeToken = () => ({
+    type: REMOVE_TOKEN,
+  });
+  
+  export const login = (email, password) => async (dispatch) => {
+    try {
+      dispatch(startLoading());
+      dispatch(clearError());
+      const res = await LoginService.login(email, password);
+      dispatch(endLoading());
+  
+      localStorage.setItem("token", res.data.token);
+  
+      // redux
+      dispatch(setToken(res.data.token));
+      dispatch(push("/"));
+  
+      // 로그인 성공
+      message.success("Sucess Login!");
+    } catch (error) {
+      console.log(error);
+      dispatch(endLoading());
+      // error feedback
+      dispatch(setError(error));
+    }
+  };
   ```
-
+  
   
