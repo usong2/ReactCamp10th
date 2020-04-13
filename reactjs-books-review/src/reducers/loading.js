@@ -1,15 +1,25 @@
-import { START_LOADING, END_LOADING } from "../actions";
+import {
+  START_LOADING,
+  END_LOADING,
+  BOOKS_PENDING,
+  BOOKS_FULFILLED,
+  BOOKS_REJECTED,
+} from "../actions";
 
 const initialState = false;
 
 const loading = (state = initialState, action) => {
-  console.log("loading reducers", action);
-  if (action.type === START_LOADING) {
-    return true;
-  } else if (action.type === END_LOADING) {
-    return false;
+  switch (action.type) {
+    case START_LOADING:
+    case BOOKS_PENDING:
+      return true;
+    case END_LOADING:
+    case BOOKS_FULFILLED:
+    case BOOKS_REJECTED:
+      return false;
+    default:
+      return state;
   }
-  return state;
 };
 
 export default loading;

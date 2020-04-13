@@ -4,8 +4,11 @@ import "./index.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import "antd/dist/antd.css";
-import store from "./store";
+import initStore from "./store";
 import { Provider } from "react-redux";
+
+const token = localStorage.getItem("token");
+const store = initStore(token);
 
 ReactDOM.render(
   <Provider store={store}>

@@ -2,10 +2,10 @@ import React, { useEffect } from "react";
 
 const Book = (props) => <div>title: {props.title}</div>;
 
-const Books = ({ token, books, loading, error, requestBooks }) => {
+const Books = ({ token, books, loading, error, requestBooksPromise }) => {
   useEffect(() => {
-    requestBooks(token);
-  }, [token, requestBooks]);
+    requestBooksPromise(token);
+  }, [token, requestBooksPromise]);
 
   return (
     <div>
