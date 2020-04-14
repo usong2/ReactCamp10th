@@ -2,6 +2,7 @@ import { push } from "connected-react-router";
 import BookService from "../services/BookService";
 import LoginService from "../services/LoginService";
 import { message } from "antd";
+import { call, put } from "redux-saga/effects";
 
 export const SET_BOOKS = "SET_BOOKS";
 
@@ -99,3 +100,25 @@ export const login = (email, password) => async (dispatch) => {
     dispatch(setError(error));
   }
 };
+
+// saga
+
+export const BOOKS_FETCH_REQUESTED = "BOOKS_FETCH_REQUESTED";
+export const BOOKS_FETCH_SUCCEEDED = "BOOKS_FETCH_SUCCEEDED";
+export const BOOKS_FETCH_FAILED = "BOOKS_FETCH_FAILED";
+
+export function* fetchBooks(action) {
+  try {
+    const response = yield call(BookService.getBooks, action.token);
+    console.log(response);
+    yield put({ type: BOOKS_FETCH_SUCCEEDED, books: response.data });
+  } catch (error) {
+    yield put({ type: BOOKS_FETCH_FAILED, error });
+  }
+}
+
+// 실제로 내가 실행하라고 하는 함수
+export const setBooksSaga = (token) => ({
+  type: BOOKS_FETCH_REQUESTED,
+  token,
+});

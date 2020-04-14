@@ -5,8 +5,10 @@ import thunk from "redux-thunk";
 import promise from "redux-promise-middleware";
 import { routerMiddleware } from "connected-react-router";
 import { createBrowserHistory } from "history";
+import createSagaMiddleware from "redux-saga";
 
 export const history = createBrowserHistory();
+export const sagaMiddleware = createSagaMiddleware();
 
 const initStore = (token) =>
   createStore(
@@ -15,7 +17,7 @@ const initStore = (token) =>
       token,
     },
     composeWithDevTools(
-      applyMiddleware(routerMiddleware(history), thunk, promise)
+      applyMiddleware(routerMiddleware(history), thunk, promise, sagaMiddleware)
     )
   );
 

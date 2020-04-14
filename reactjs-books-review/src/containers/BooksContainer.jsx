@@ -1,6 +1,6 @@
 import { connect } from "react-redux";
 import Books from "../components/Books";
-import { setBooksThunk, setBooksPromise } from "../actions";
+import { setBooksThunk, setBooksPromise, setBooksSaga } from "../actions";
 
 const mapStateToProps = (state) => ({
   books: state.books,
@@ -15,6 +15,10 @@ const mapDispatchProps = (dispatch) => ({
 
   requestBooksPromise: (token) => {
     dispatch(setBooksPromise(token));
+  },
+
+  requestBooksSaga: (token) => {
+    dispatch(setBooksSaga(token));
   },
 });
 

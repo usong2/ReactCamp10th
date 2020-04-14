@@ -500,6 +500,8 @@ export default store;
 
 ## redux-thunk
 
++ 가장 자유도가 높고 손이 많이 감
+
 참고: [https://github.com/zalmoxisus/redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension)
 
 ```bash
@@ -725,6 +727,7 @@ export const setBooksThunk = token => async dispatch => {
 
 ## redux-promise-middleware
 
++ redux-thunk에 비해 자유도가 떨어짐
 + 참고: [https://pburtchaell.gitbook.io/redux-promise-middleware/](https://pburtchaell.gitbook.io/redux-promise-middleware/)
 
 ```bash
@@ -2581,4 +2584,593 @@ import LoginService from "../services/LoginService";
   };
   ```
   
+
+<br>
+
+## :star:redux-saga
+
++ 여러 가지 비동기를 병렬로 병합해야 할 때 유용
+
+참고: [https://redux-saga.js.org/](https://redux-saga.js.org/)
+번역: [https://mskims.github.io/redux-saga-in-korean/](https://mskims.github.io/redux-saga-in-korean/)
+
+### 리덕스 사가
+
++ 미들웨어
++ 제너레이터를 만들어내는 제네레이터 생성 함수를 이용
++ 리덕스 사가 미들웨어를 설정
++ 만든 사가 함수를 실행한 뒤
++ 디스패치
+
+```bash
+$ npm i redux-saga
+```
+
+<br>
+
+```jsx
+// src/sagas.js
+
+import {
+  BOOKS_FETCH_REQUESTED,
+  BOOKS_FETCH_SUCCEEDED,
+  BOOKS_FETCH_FAILED,
+} from './actions';
+import { call, put, takeEvery } from 'redux-saga/effects';
+import * as axios from 'axios';
+
+async function getBooks(token) {
+  const response = await axios.get('https://api.marktube.tv/v1/book', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}
+
+// BOOKS_FETCH_REQUESTED 액션으로 시작
+function* fetchBooks(action) {
+  try {
+    const books = yield call(getBooks, action.payload.token);
+    yield put({ type: BOOKS_FETCH_SUCCEEDED, books });
+  } catch (e) {
+    yield put({ type: BOOKS_FETCH_FAILED });
+  }
+}
+
+// BOOKS_FETCH_REQUESTED 액션을 실행할 수 있도록 등록하는 함수
+function* mySaga() {
+  yield takeEvery(BOOKS_FETCH_REQUESTED, fetchBooks);
+}
+
+export default mySaga;
+```
+
+```jsx
+// src/actions/index.js
+
+import * as axios from 'axios';
+
+export const BOOKS_FETCH_REQUESTED = 'BOOKS_FETCH_REQUESTED';
+export const BOOKS_FETCH_SUCCEEDED = 'BOOKS_FETCH_SUCCEEDED';
+export const BOOKS_FETCH_FAILED = 'BOOKS_FETCH_FAILED';
+
+export const setBooksSaga = token => ({
+  type: BOOKS_FETCH_REQUESTED,
+  payload: { token },
+});
+```
+
+```jsx
+// src/store.js
+
+import { createStore, applyMiddleware } from "redux";
+import reducers from "./reducers";
+import { composeWithDevTools } from "redux-devtools-extension";
+import thunk from "redux-thunk";
+import promise from "redux-promise-middleware";
+import { createBrowserHistory } from "history";
+import { routerMiddleware } from "connected-react-router";
+import { createSagaMiddleware } from "redux-saga";
+import mySaga from "./sagas";
+
+export const history = createBrowserHistory();
+const sagaMiddleware = createSagaMiddleware();
+
+const store = createStore(
+  reducers(history),
+  composeWithDevTools(
+    applyMiddleware(routerMiddleware(history), thunk, promise, sagaMiddleware)
+  )
+);
+
+sagaMiddleware.run(mySaga);
+
+export default store;
+```
+
+```jsx
+// src/containers/BooksContainer.js
+
+const mapDispatchToProps = dispatch => ({
+  requestBooks: async token => {...},
+  requestBooksThunk: token => {...},
+  requestBooksPromise: token => {...},
+  requestBooksSaga: token => {
+    dispatch(setBooksSaga(token));
+  }
+});                  
+```
+
+```jsx
+// src/reducers/loading.js
+
+import {
+  ...
+  BOOKS_FETCH_REQUESTED,
+  BOOKS_FETCH_SUCCEEDED,
+  BOOKS_FETCH_FAILED
+} from "../actions";
+
+const initialState = false;
+
+const loading = (state = initialState, action) => {
+  console.log("loading reducer", action);
+  switch (action.type) {
+    case BOOKS_FETCH_REQUESTED:
+      return true;
+    case BOOKS_FETCH_SUCCEEDED:
+    case BOOKS_FETCH_FAILED:
+      return false;
+    default:
+      return state;
+  }
+};
+
+export default loading;
+```
+
+```jsx
+// src/reducers/books.js
+
+export default function books(state = initialState, action) {
+  switch (action.type) {
+    case BOOKS_FETCH_SUCCEEDED:
+      return [...action.books]
+    }
+    ...
+  }
+}
+```
+
+```jsx
+// src/sagas.js
+
+/// BOOKS_FETCH_REQUESTED 액션을 실행할 수 있도록 등록하는 함수
+function* mySaga() {
+  yield takeEvery(BOOKS_FETCH_REQUESTED, fetchBooks);
+  // yield takeLatest(BOOKS_FETCH_REQUESTED, fetchBooks);
+}
+
+export default mySaga;
+```
+
+### 실습
+
++ ./src에 sagas.js 생성
+
+  ```jsx
+  // ./src/sagas.js
   
+  import { takeEvery } from "redux-saga/effects";
+  import { BOOKS_FETCH_REQUESTED } from "./actions";
+  import { fetchBooks } from "./actions";
+  
+  function* mySagas() {
+    yield takeEvery(BOOKS_FETCH_REQUESTED, fetchBooks);
+  }
+  
+  export default mySagas;
+  ```
+
++ ./src/actions/index.js 수정
+
+  ```jsx
+  // ./src/actions/index.js 
+  
+  import { push } from "connected-react-router";
+  import BookService from "../services/BookService";
+  import LoginService from "../services/LoginService";
+  import { message } from "antd";
+  import { call, put } from "redux-saga/effects";
+  
+  export const SET_BOOKS = "SET_BOOKS";
+  
+  const setBooks = (books) => ({
+    type: SET_BOOKS,
+    books,
+  });
+  
+  export const START_LOADING = "START_LOADING";
+  export const END_LOADING = "END_LOADING";
+  
+  export function startLoading() {
+    return {
+      type: START_LOADING,
+    };
+  }
+  
+  export function endLoading() {
+    return {
+      type: END_LOADING,
+    };
+  }
+  
+  export const SET_ERROR = "SET_ERROR";
+  export const CLEAR_ERROR = "CLEAR_ERROR";
+  
+  export const setError = (error) => ({
+    type: SET_ERROR,
+    error,
+  });
+  
+  export const clearError = () => ({
+    type: CLEAR_ERROR,
+  });
+  
+  // thunk
+  export const setBooksThunk = (token) => async (dispatch) => {
+    dispatch(startLoading());
+    dispatch(clearError());
+  
+    try {
+      const res = await BookService.getBooks(token);
+      dispatch(setBooks(res.data));
+      dispatch(endLoading());
+    } catch (error) {
+      console.log(error);
+      dispatch(setError(error));
+      dispatch(endLoading());
+    }
+  };
+  
+  export const BOOKS = "BOOKS";
+  export const BOOKS_PENDING = "BOOKS_PENDING";
+  export const BOOKS_FULFILLED = "BOOKS_FULFILLED";
+  export const BOOKS_REJECTED = "BOOKS_REJECTED";
+  
+  // promise
+  export const setBooksPromise = (token) => ({
+    type: BOOKS,
+    payload: BookService.getBooks(token),
+  });
+  
+  // token
+  export const SET_TOKEN = "SET_TOKEN";
+  export const REMOVE_TOKEN = "REMOVE_TOKEN";
+  
+  export const setToken = (token) => ({
+    type: SET_TOKEN,
+    token,
+  });
+  
+  export const removeToken = () => ({
+    type: REMOVE_TOKEN,
+  });
+  
+  export const login = (email, password) => async (dispatch) => {
+    try {
+      dispatch(startLoading());
+      dispatch(clearError());
+      const res = await LoginService.login(email, password);
+      dispatch(endLoading());
+  
+      localStorage.setItem("token", res.data.token);
+  
+      // redux
+      dispatch(setToken(res.data.token));
+      dispatch(push("/"));
+  
+      // 로그인 성공
+      message.success("Sucess Login!");
+    } catch (error) {
+      console.log(error);
+      dispatch(endLoading());
+      // error feedback
+      dispatch(setError(error));
+    }
+  };
+  
+  // saga
+  
+  export const BOOKS_FETCH_REQUESTED = "BOOKS_FETCH_REQUESTED";
+  export const BOOKS_FETCH_SUCCEEDED = "BOOKS_FETCH_SUCCEEDED";
+  export const BOOKS_FETCH_FAILED = "BOOKS_FETCH_FAILED";
+  
+  export function* fetchBooks(action) {
+    try {
+      const response = yield call(BookService.getBooks, action.token);
+      console.log(response);
+      yield put({ type: BOOKS_FETCH_SUCCEEDED, books: response.data });
+    } catch (error) {
+      yield put({ type: BOOKS_FETCH_FAILED, error });
+    }
+  }
+  
+  // 실제로 내가 실행하라고 하는 함수
+  export const setBooksSaga = (token) => ({
+    type: BOOKS_FETCH_REQUESTED,
+    token,
+  });
+  ```
+
++ ./src/reducers/books.js 수정
+
+  ```jsx
+  // ./src/reducers/books.js
+  
+  import { SET_BOOKS, BOOKS_FULFILLED, BOOKS_FETCH_SUCCEEDED } from "../actions";
+  
+  const initialState = [];
+  
+  const books = (state = initialState, action) => {
+    switch (action.type) {
+      case SET_BOOKS:
+      case BOOKS_FETCH_SUCCEEDED:
+        return [...action.books];
+      case BOOKS_FULFILLED:
+        return [...action.payload.data];
+      default:
+        return state;
+    }
+  };
+  
+  export default books;
+  ```
+
++ ./src/reducers/error.js 수정
+
+  ```jsx
+  // ./src/reducers/error.js 
+  
+  import {
+    SET_ERROR,
+    CLEAR_ERROR,
+    BOOKS_REJECTED,
+    BOOKS_PENDING,
+    BOOKS_FETCH_REQUESTED,
+    BOOKS_FETCH_FAILED,
+  } from "../actions";
+  
+  const initialState = null;
+  
+  const error = (state = initialState, action) => {
+    switch (action.type) {
+      case SET_ERROR:
+      case BOOKS_FETCH_FAILED:
+        return action.error;
+      case BOOKS_REJECTED:
+        return action.payload;
+      case CLEAR_ERROR:
+      case BOOKS_PENDING:
+      case BOOKS_FETCH_REQUESTED:
+        return null;
+      default:
+        return state;
+    }
+  };
+  
+  export default error;
+  ```
+
++ ./src/reducers/loading.js 수정
+
+  ```jsx
+  // ./src/reducers/loading.js
+  
+  import {
+    START_LOADING,
+    END_LOADING,
+    BOOKS_PENDING,
+    BOOKS_FULFILLED,
+    BOOKS_REJECTED,
+    BOOKS_FETCH_REQUESTED,
+    BOOKS_FETCH_SUCCEEDED,
+    BOOKS_FETCH_FAILED,
+  } from "../actions";
+  
+  const initialState = false;
+  
+  const loading = (state = initialState, action) => {
+    switch (action.type) {
+      case START_LOADING:
+      case BOOKS_PENDING:
+      case BOOKS_FETCH_REQUESTED:
+        return true;
+      case END_LOADING:
+      case BOOKS_FULFILLED:
+      case BOOKS_REJECTED:
+      case BOOKS_FETCH_SUCCEEDED:
+      case BOOKS_FETCH_FAILED:
+        return false;
+      default:
+        return state;
+    }
+  };
+  
+  export default loading;
+  ```
+
++ ./src/store.js 수정
+
+  ```jsx
+  // ./src/store.js
+  
+  import { createStore, applyMiddleware } from "redux";
+  import reducers from "./reducers";
+  import { composeWithDevTools } from "redux-devtools-extension";
+  import thunk from "redux-thunk";
+  import promise from "redux-promise-middleware";
+  import { routerMiddleware } from "connected-react-router";
+  import { createBrowserHistory } from "history";
+  import createSagaMiddleware from "redux-saga";
+  
+  export const history = createBrowserHistory();
+  export const sagaMiddleware = createSagaMiddleware();
+  
+  const initStore = (token) =>
+    createStore(
+      reducers(history),
+      {
+        token,
+      },
+      composeWithDevTools(
+        applyMiddleware(routerMiddleware(history), thunk, promise, sagaMiddleware)
+      )
+    );
+  
+  export default initStore;
+  ```
+
++ ./src/containers/BooksContainer.jsx 수정
+
+  ```jsx
+  // ./src/containers/BooksContainer.jsx
+  
+  import { connect } from "react-redux";
+  import Books from "../components/Books";
+  import { setBooksThunk, setBooksPromise, setBooksSaga } from "../actions";
+  
+  const mapStateToProps = (state) => ({
+    books: state.books,
+    loading: state.loading,
+    error: state.error,
+  });
+  
+  const mapDispatchProps = (dispatch) => ({
+    requestBooksThunk: (token) => {
+      dispatch(setBooksThunk(token));
+    },
+  
+    requestBooksPromise: (token) => {
+      dispatch(setBooksPromise(token));
+    },
+  
+    requestBooksSaga: (token) => {
+      dispatch(setBooksSaga(token));
+    },
+  });
+  
+  export default connect(mapStateToProps, mapDispatchProps)(Books);
+  ```
+
++ ./src/index.js 수정
+
+  ```jsx
+  // ./src/index.js 
+  
+  import React from "react";
+  import ReactDOM from "react-dom";
+  import "./index.css";
+  import App from "./App";
+  import * as serviceWorker from "./serviceWorker";
+  import "antd/dist/antd.css";
+  import initStore, { sagaMiddleware } from "./store";
+  import { Provider } from "react-redux";
+  import mySagas from "./sagas";
+  
+  const token = localStorage.getItem("token");
+  const store = initStore(token);
+  sagaMiddleware.run(mySagas);
+  
+  ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    document.getElementById("root")
+  );
+  
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
+  ```
+
++ ./src/components/Books.jsx
+
+  ```jsx
+  // ./src/components/Books.jsx
+  
+  import React, { useEffect } from "react";
+  
+  const Book = (props) => <div>title: {props.title}</div>;
+  
+  const Books = ({ token, books, loading, error, requestBooksSaga }) => {
+    useEffect(() => {
+      requestBooksSaga(token);
+    }, [token, requestBooksSaga]);
+  
+    return (
+      <div>
+        {loading && "<p>loading...</p>"}
+        {error !== null && <p>{error.message}</p>}
+        {books.map((book) => (
+          <Book title={book.title} key={book.bookId} />
+        ))}
+      </div>
+    );
+  };
+  
+  export default Books;
+  ```
+
+### 특징
+
++ 제네레이터에 조건을 걸어 takeEvery가 아닌 takeLatest는 여러 번 로직을 보내도 한 번만 처리
+
+```jsx
+// ./src/components/Books.jsx
+
+import React, { useEffect } from "react";
+
+const Book = (props) => <div>title: {props.title}</div>;
+
+const Books = ({ token, books, loading, error, requestBooksSaga }) => {
+  useEffect(() => {
+    requestBooksSaga(token);
+    requestBooksSaga(token);
+    requestBooksSaga(token);
+    requestBooksSaga(token);
+    requestBooksSaga(token);
+  }, [token, requestBooksSaga]);
+
+  return (
+    <div>
+      {loading && "<p>loading...</p>"}
+      {error !== null && <p>{error.message}</p>}
+      {books.map((book) => (
+        <Book title={book.title} key={book.bookId} />
+      ))}
+    </div>
+  );
+};
+
+export default Books;
+```
+
+```jsx
+// ./src/sagas.js
+
+import { takeEvery, takeLatest } from "redux-saga/effects";
+import { BOOKS_FETCH_REQUESTED } from "./actions";
+import { fetchBooks } from "./actions";
+
+function* mySagas() {
+  yield takeLatest(BOOKS_FETCH_REQUESTED, fetchBooks);
+}
+
+export default mySagas;
+```
+
+
+
