@@ -1258,3 +1258,215 @@ Warning: Cannot perform a React state update on an unmounted component. This is 
 #### user-event
 
 + [https://testing-library.com/docs/ecosystem-user-event](https://testing-library.com/docs/ecosystem-user-event)
+
+<br>
+
+## enzyme 활용하기
+
++ enzyme: [https://airbnb.io/enzyme/](https://airbnb.io/enzyme/)
+
+```bash
+$ npm i enzyme enzyme-adapter-react-16 -D
+```
+
+### Button 컴포넌트
+
+#### 컴포넌트가 정상적으로 생성
+
+```jsx
+// src/components/Button.enzyme.test.js
+
+import React from "react";
+import Enzyme, { shallow } from "enzyme";
+
+import Adapter from "enzyme-adapter-react-16";
+import Button from "./Button";
+
+Enzyme.configure({ adapter: new Adapter() });
+
+describe("Button 컴포넌트 (enzyme)", () => {
+  it("컴포넌트가 정상적으로 생성된다.", () => {
+    shallow(<Button />);
+  });
+});
+```
+
+#### 버튼 엘리먼트에 써있는 텍스트는 "button" 임
+
+```jsx
+describe("Button 컴포넌트 (enzyme)", () => {
+  // ...
+  
+  it(`버튼 엘리먼트에 써있는 텍스트는 "button" 이다.`, () => {
+    const wrapper = shallow(<Button />);
+
+    const button = wrapper.find("button");
+    expect(button.text()).toBe("button");
+  });
+});
+```
+
+#### 버튼을 클릭하면, p 태그 안에 "버튼이 방금 눌렸다"라고 쓰여짐
+
+```jsx
+describe("Button 컴포넌트 (enzyme)", () => {
+  // ...
+  
+  it(`버튼을 클릭하면, p 태그 안에 "버튼이 방금 눌렸다." 라고 쓰여진다.`, () => {
+    const wrapper = shallow(<Button />);
+
+    const button = wrapper.find("button");
+    button.simulate("click");
+
+    const p = wrapper.find("p");
+    expect(p.text()).toBe("버튼이 방금 눌렸다.");
+  });
+});
+```
+
+#### 버튼을 클릭하기 전에는, p 태그 안에 "버튼이 눌리지 않았다."라고 쓰여짐
+
+```jsx
+describe("Button 컴포넌트 (enzyme)", () => {
+  // ...
+  
+  it(`버튼을 클릭하기 전에는, p 태그 안에 "버튼이 눌리지 않았다." 라고 쓰여진다.`, () => {
+    const wrapper = shallow(<Button />);
+
+    const p = wrapper.find("p");
+    expect(p.text()).toBe("버튼이 눌리지 않았다.");
+  });
+});
+```
+
+#### 버튼을 클릭하고 5초 뒤에는, p 태그 안에 "버튼이 눌리지 않았다." 라고 쓰여짐
+
+```jsx
+jest.useFakeTimers();
+
+describe("Button 컴포넌트 (enzyme)", () => {
+  // ...
+  
+  it(`버튼을 클릭하고 5초 뒤에는, p 태그 안에 "버튼이 눌리지 않았다." 라고 쓰여진다.`, async () => {
+    const wrapper = shallow(<Button />);
+
+    const button = wrapper.find("button");
+    button.simulate("click");
+
+    jest.advanceTimersByTime(5000);
+
+    const p = wrapper.find("p");
+    expect(p.text()).toBe("버튼이 눌리지 않았다.");
+  });
+});
+```
+
+#### 버튼을 클릭하면, 5초 동안 버튼이 비활성화됨
+
+```jsx
+jest.useFakeTimers();
+
+describe("Button 컴포넌트 (enzyme)", () => {
+  // ...
+  
+  it(`버튼을 클릭하면, 5초 동안 버튼이 비활성화 된다.`, () => {
+    const wrapper = shallow(<Button />);
+
+    const button = wrapper.find("button");
+    button.simulate("click");
+
+    expect(wrapper.find("button").prop("disabled")).toBeTruthy();
+
+    jest.advanceTimersByTime(5000);
+
+    expect(wrapper.find("button").prop("disabled")).toBeFalsy();
+  });
+});
+```
+
++ ./src/components/Button.enzyme.test.js 
+
+  ```jsx
+  // ./src/components/Button.enzyme.test.js
+  
+  import React from "react";
+  import Button from "./Button";
+  import { act } from "react-dom/test-utils";
+  import Enzyme, { shallow } from "enzyme";
+  import Adapter from "enzyme-adapter-react-16";
+  
+  Enzyme.configure({ adapter: new Adapter() });
+  
+  jest.useFakeTimers();
+  
+  describe("Button 컴포넌트 (@testing-library/react)", () => {
+    it("컴포넌트가 정상적으로 생성된다.", async () => {
+      shallow(<Button />);
+    });
+  
+    it(`"button" 이라고 쓰여있는 엘리먼트는 HTMLButtonElement 이다.`, () => {
+      const wrapper = shallow(<Button />);
+      const button = wrapper.find("button");
+      expect(button.text()).toBe("button");
+    });
+  
+    it(`버튼을 클릭하면, p 태그 안에 "버튼이 방금 눌렸다." 라고 쓰여진다`, () => {
+      // Given
+      const wrapper = shallow(<Button />);
+  
+      // When
+      const button = wrapper.find("button");
+      button.simulate("click");
+  
+      // Then
+      const p = wrapper.find("p");
+      expect(p.text()).toBe("버튼이 방금 눌렸다.");
+    });
+  
+    it(`버튼을 클릭하기 전에는, p 태그 안에 "버튼이 눌리지 않았다." 라고 쓰여진다.`, () => {
+      // Given
+      const wrapper = shallow(<Button />);
+  
+      // Then
+      const p = wrapper.find("p");
+      expect(p.text()).toBe("버튼이 눌리지 않았다.");
+    });
+  
+    it(`버튼을 클릭하고 5초 뒤에는, p 태그 안에 "버튼이 눌리지 않았다." 라고 쓰여진다.`, () => {
+      // Given
+      const wrapper = shallow(<Button />);
+      const button = wrapper.find("button");
+      act(() => {
+        button.simulate("click");
+      });
+  
+      // When
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+  
+      // Then
+      const p = wrapper.find("p");
+      expect(p.text()).toBe("버튼이 눌리지 않았다.");
+    });
+  
+    it(`버튼을 클릭하면, 5초 동안 버튼이 비활성화 된다.`, () => {
+      const wrapper = shallow(<Button />);
+  
+      act(() => {
+        const button = wrapper.find("button");
+        button.simulate("click");
+      });
+  
+      expect(wrapper.find("button").prop("disabled")).toBeTruthy();
+  
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+  
+      expect(wrapper.find("button").prop("disabled")).toBeFalsy();
+    });
+  });
+  ```
+
+  

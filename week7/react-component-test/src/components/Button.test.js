@@ -4,7 +4,7 @@ import { render, fireEvent } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 jest.useFakeTimers();
 
-describe("Button 컴포넌트 (@testing-library/react)", () => {
+describe.skip("Button 컴포넌트 (@testing-library/react)", () => {
   it("컴포넌트가 정상적으로 생성된다.", async () => {
     render(<Button />);
   });
