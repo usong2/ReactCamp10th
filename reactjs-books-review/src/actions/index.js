@@ -6,7 +6,7 @@ import { call, put } from "redux-saga/effects";
 
 export const SET_BOOKS = "SET_BOOKS";
 
-const setBooks = (books) => ({
+export const setBooks = (books) => ({
   type: SET_BOOKS,
   books,
 });

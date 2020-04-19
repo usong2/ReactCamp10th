@@ -1469,4 +1469,258 @@ describe("Button 컴포넌트 (enzyme)", () => {
   });
   ```
 
+<br>
+
+## 리덕스 테스트
+
+### Test 대상
+
++ 액션 생성 함수
++ 리듀서
++ 컨테이너
+
+#### reactjs-books-review 실습
+
++ ./src/App.test.js 수정
+
+  ```jsx
+  // ./src/App.test.js
+  
+  import React from "react";
+  import { render } from "@testing-library/react";
+  import App from "./App";
+  
+  test("renders learn react link", () => {
+    render(<App />);
+  });
+  ```
+
++ ./src/actions/index.js 수정
+
+  ```jsx
+  export const setBooks = (books) => ({
+    type: SET_BOOKS,
+    books,
+  });
+  ```
+
++ ./src/actions에 index.test.js 생성
+
+  ```jsx
+  // ./src/actions/index.test.js
+  
+  import {
+    setBooks,
+    SET_BOOKS,
+    startLoading,
+    START_LOADING,
+    endLoading,
+    END_LOADING,
+  } from ".";
+  
+  describe("actions", () => {
+    describe("books", () => {
+      it("setBooks(books) should create action", () => {
+        const booksMock = ["hello", "world"];
+        const action = setBooks(booksMock);
+        expect(action).toEqual({ type: SET_BOOKS, books: booksMock });
+      });
+    });
+    describe("loading", () => {
+      it("startLoading() should create action", () => {
+        const action = startLoading();
+        expect(action).toEqual({ type: START_LOADING });
+      });
+      it("endLoading() should create action", () => {
+        const action = endLoading();
+        expect(action).toEqual({ type: END_LOADING });
+      });
+    });
+  });
+  ```
+
+#### 리듀서 테스트1
+
+```jsx
+import books from "./books";
+
+describe("books reducer", () => {
+  let state = null;
+
+  beforeEach(() => {
+    state = books(undefined, {});
+  });
+
+  afterEach(() => {
+    state = null;
+  });
+
+  it("should return the initialState", () => {
+    expect(state).toEqual([]);
+  });
+});
+```
+
+#### 리듀서 테스트2
+
+```jsx
+import books from "./books";
+import { setBooks } from "../actions";
+
+describe("books reducer", () => {
+  ...
+
+  it("setBooks action should return the newState", () => {
+    const booksMock = [
+      {
+        bookId: 1,
+        ownerId: "7d26db27-168c-4c6a-bd9a-9e20677b60b8",
+        title: "모던 자바스크립트 입문",
+        message: "모던하군요"
+      },
+      {
+        bookId: 2,
+        ownerId: "7d26db27-168c-4c6a-bd9a-9e20677b60b8",
+        title: "책 Mock",
+        message: "메세지 Mock"
+      }
+    ];
+    const action = setBooks(booksMock);
+    const newState = books(state, action);
+    expect(newState).toEqual(booksMock);
+  });
+});
+```
+
+####  리듀서 테스트 실습
+
++ ./src/reducers에 books.test.js 생성
+
+  ```jsx
+  // ./src/reducers/books.test.js
+  
+  import books from "./books";
+  import { setBooks } from "../actions";
+  
+  describe("books reducer", () => {
+    it("should return the initialState", () => {
+      const state = books(undefined, {});
+  
+      const initialState = [];
+  
+      expect(state).toEqual(initialState);
+    });
+  
+    it("setBooks action should return the newState", () => {
+      const state = books(undefined, {});
+  
+      const booksMock = [
+        {
+          bookId: 1,
+          ownerId: "7d26db27-168c-4c6a-bd9a-9e20677b60b8",
+          title: "모던 자바스크립트 입문",
+          message: "모던하군요",
+        },
+        {
+          bookId: 2,
+          ownerId: "7d26db27-168c-4c6a-bd9a-9e20677b60b8",
+          title: "책 Mock",
+          message: "메세지 Mock",
+        },
+      ];
+  
+      const action = setBooks(booksMock);
+  
+      const newState = books(state, action);
+  
+      expect(newState).toEqual(booksMock);
+    });
+  });
+  ```
+
+#### 컨테이너 테스트
+
+```jsx
+import React from "react";
+import Enzyme, { mount } from "enzyme";
+import BooksContainer from "./BooksContainer";
+import configureMockStore from "redux-mock-store";
+import Adapter from "enzyme-adapter-react-16";
+
+Enzyme.configure({ adapter: new Adapter() });
+
+describe("BookContainer", () => {
+  const mockStore = configureMockStore();
+
+  // 가짜 스토어 만들기
+  let store = mockStore({
+    books: [],
+    loading: false,
+    error: null,
+    token: "",
+    router: {
+      location: {
+        pathname: "/"
+      }
+    }
+  });
+
+  it("renders properly", () => {
+    const component = mount(<BooksContainer store={store} />);
+    expect(component).toMatchSnapshot();
+  });
+});
+```
+
++ 설치
+
+  ```bash
+  $ npm i redux-mock-store enzyme-to-json -D
+  $ npm i enzyme enzyme-adapter-react-16 -D
+  ```
+
++ ./package.json 수정
+
+  ```jsx
+  // ./package.json 
+  
+  {
+    ...
+    "jest": {
+      "snapshotSerializers": [
+        "enzyme-to-json/serializer"
+      ]
+    }
+  }
+  ```
+
++ ./src/containers에 BooksContainer.test.js 생성
+
+  ```jsx
+  // ./src/containers/BooksContainer.test.js
+  
+  import React from "react";
+  import Enzyme, { mount } from "enzyme";
+  import Adapter from "enzyme-adapter-react-16";
+  import configureMockStore from "redux-mock-store";
+  import BooksContainer from "../containers/BooksContainer";
+  
+  Enzyme.configure({ adapter: new Adapter() });
+  
+  describe("BooksContainer", () => {
+    it("renders properly", () => {
+      const mockStore = configureMockStore();
+  
+      const store = mockStore({
+        books: [],
+        loading: false,
+        error: null,
+      });
+  
+      const component = mount(<BooksContainer store={store} />);
+      expect(component).toMatchSnapshot();
+    });
+  });
+  ```
+
   

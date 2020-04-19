@@ -1,4 +1,4 @@
-import { takeEvery, takeLatest } from "redux-saga/effects";
+import { takeLatest } from "redux-saga/effects";
 import { BOOKS_FETCH_REQUESTED } from "./actions";
 import { fetchBooks } from "./actions";
 

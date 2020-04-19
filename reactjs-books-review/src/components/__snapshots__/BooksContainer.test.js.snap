@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BooksContainer renders properly 1`] = `
+<Connect(Books)
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Books
+    books={Array []}
+    error={null}
+    loading={false}
+    requestBooksPromise={[Function]}
+    requestBooksSaga={[Function]}
+    requestBooksThunk={[Function]}
+    store={
+      Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      }
+    }
+  >
+    <div />
+  </Books>
+</Connect(Books)>
+`;
