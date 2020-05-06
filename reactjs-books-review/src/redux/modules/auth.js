@@ -1,4 +1,4 @@
-import { put, call, takeEvery } from "redux-saga/effects";
+import { put, call, takeEvery, select } from "redux-saga/effects";
 import LoginService from "../../services/LoginService";
 import { push } from "connected-react-router";
 
@@ -57,6 +57,7 @@ export default auth;
 
 // saga action type
 const START_LOGIN_SAGA = "reactjs-books-review/books/START_LOGIN_SAGA";
+const START_LOGOUT_SAGA = "reactjs-books-review/books/START_LOGOUT_SAGA";
 
 // start saga action
 export const loginSaga = (email, password) => ({
@@ -65,6 +66,10 @@ export const loginSaga = (email, password) => ({
     email,
     password,
   },
+});
+
+export const logoutSaga = () => ({
+  type: START_LOGOUT_SAGA,
 });
 
 export function* login(action) {
@@ -82,6 +87,22 @@ export function* login(action) {
   }
 }
 
+export function* logout(action) {
+  try {
+    const token = yield select((state) => state.auth.token);
+    yield call(LoginService.logout, token);
+  } catch (error) {
+    console.log(error);
+  }
+
+  // localStorage
+  localStorage.removeItem("token");
+
+  // to Redux
+  yield put(loginSucess(null));
+}
+
 export function* authSaga() {
   yield takeEvery(START_LOGIN_SAGA, login);
+  yield takeEvery(START_LOGOUT_SAGA, logout);
 }

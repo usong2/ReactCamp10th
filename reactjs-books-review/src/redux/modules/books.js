@@ -1,6 +1,7 @@
-import { takeEvery, put, call, select } from "redux-saga/effects";
+import { takeEvery, put, call, select, delay } from "redux-saga/effects";
 import BookService from "../../services/BookService";
 import { createActions, handleActions } from "redux-actions";
+import { push } from "connected-react-router";
 
 // 액션 생성자 함수
 const { getBooksPending, getBooksSuccess, getBooksFail } = createActions(
@@ -16,7 +17,7 @@ const { getBooksPending, getBooksSuccess, getBooksFail } = createActions(
 
 // 초기값
 const initialState = {
-  books: [],
+  books: null,
   loading: false,
   error: null,
 };
@@ -25,7 +26,7 @@ const initialState = {
 const books = handleActions(
   {
     GET_BOOKS_PENDING: (state, action) => ({
-      books: [],
+      ...state,
       loading: true,
       error: null,
     }),
@@ -35,7 +36,7 @@ const books = handleActions(
       error: null,
     }),
     GET_BOOKS_FAIL: (state, action) => ({
-      books: [],
+      ...state,
       loading: false,
       error: action.payload,
     }),
@@ -54,15 +55,35 @@ export default books;
 const START_REQUEST_BOOKS_SAGA =
   "reactjs-books-review/books/START_REQUEST_BOOKS_SAGA";
 
+const START_DELETE_BOOK_SAGA =
+  "reactjs-books-review/books/START_DELETE_BOOK_SAGA";
+
+const START_ADD_BOOK_SAGA = "reactjs-books-review/books/START_ADD_BOOK_SAGA";
+
 // start saga action
 export const requestBooksSaga = (email, password) => ({
   type: START_REQUEST_BOOKS_SAGA,
+});
+
+export const deleteBookSaga = (bookId) => ({
+  type: START_DELETE_BOOK_SAGA,
+  payload: {
+    bookId,
+  },
+});
+
+export const addBookSaga = (book) => ({
+  type: START_ADD_BOOK_SAGA,
+  payload: {
+    book,
+  },
 });
 
 function* requestBooks() {
   const token = yield select((state) => state.auth.token);
   try {
     yield put(getBooksPending());
+    yield delay(2000);
     const response = yield call(BookService.getBooks, token);
     const books = response.data;
     yield put(getBooksSuccess(books));
@@ -71,6 +92,38 @@ function* requestBooks() {
   }
 }
 
+function* deleteBook(action) {
+  const bookId = action.payload.bookId;
+  const token = yield select((state) => state.auth.token);
+  try {
+    yield put(getBooksPending());
+    yield delay(2000);
+    yield call(BookService.deleteBook, token, bookId);
+
+    const books = yield select((state) => state.books.books);
+    yield put(getBooksSuccess(books.filter((book) => book.bookId !== bookId)));
+  } catch (error) {
+    yield put(getBooksFail(error));
+  }
+}
+
+function* addBook(action) {
+  const book = action.payload.book;
+  const token = yield select((state) => state.auth.token);
+  try {
+    yield put(getBooksPending());
+    yield delay(2000);
+    const response = yield call(BookService.addBook, token, book);
+    const books = yield select((state) => state.books.books);
+    yield put(getBooksSuccess([...books, response.data]));
+    yield put(push("/"));
+  } catch (error) {
+    yield put(getBooksFail(error));
+  }
+}
+
 export function* booksSaga() {
   yield takeEvery(START_REQUEST_BOOKS_SAGA, requestBooks);
+  yield takeEvery(START_DELETE_BOOK_SAGA, deleteBook);
+  yield takeEvery(START_ADD_BOOK_SAGA, addBook);
 }

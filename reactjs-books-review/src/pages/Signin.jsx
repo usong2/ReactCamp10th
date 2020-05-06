@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { Row, Col } from "antd";
 import SigninBg from "../components/SigninBg";
 import SigninFormContainer from "../containers/SigninFormContainer";
+import useToken from "../hooks/useToken";
+import { Redirect } from "react-router-dom";
 
 const Page = styled(Row).attrs(() => ({
   type: "flex",
@@ -16,7 +18,7 @@ const Title = styled.div`
   font-family: Roboto;
   font-size: 40px;
   font-weight: bold;
-  color: #27ae60;
+  color: #1890ff;
   text-transform: uppercase;
 `;
 
@@ -34,7 +36,7 @@ const Underline = styled.div`
   margin-right: auto;
   margin-left: auto;
   margin-top: 20px;
-  background: linear-gradient(to right, #27ae60, #f9e79f);
+  background: linear-gradient(to right, #1890ff, #ffb618);
 `;
 
 const Contents = styled(Row).attrs(() => ({
@@ -47,18 +49,25 @@ const Contents = styled(Row).attrs(() => ({
   width: 800px;
 `;
 
-const Signin = () => (
-  <Page>
-    <Col span={24}>
-      <Title>USONG REVIEW SERVICE FOR BOOKS</Title>
-      <SubTitle>PLEASE SHARE YOUR OPINION ON WEB DEVELOPMENT BOOKS.</SubTitle>
-      <Underline />
-      <Contents>
-        <SigninBg />
-        <SigninFormContainer />
-      </Contents>
-    </Col>
-  </Page>
-);
+const Signin = () => {
+  const token = useToken();
+  if (token !== null) {
+    return <Redirect to="/" />;
+  }
+
+  return (
+    <Page>
+      <Col span={24}>
+        <Title>USONG REVIEW SERVICE FOR BOOKS</Title>
+        <SubTitle>PLEASE SHARE YOUR OPINION ON WEB DEVELOPMENT BOOKS.</SubTitle>
+        <Underline />
+        <Contents>
+          <SigninBg />
+          <SigninFormContainer />
+        </Contents>
+      </Col>
+    </Page>
+  );
+};
 
 export default Signin;

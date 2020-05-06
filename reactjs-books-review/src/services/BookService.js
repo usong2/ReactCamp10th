@@ -12,7 +12,7 @@ export default class BookService {
     });
 
   static deleteBook = (token, id) =>
-    axios.delete("https://api.marktube.tv/v1/book", {
+    axios.delete("https://api.marktube.tv/v1/book/" + id, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

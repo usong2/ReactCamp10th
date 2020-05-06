@@ -1,10 +1,10 @@
 import React from "react";
-import BooksContainer from "../containers/BooksContainer";
+import BookAddContainer from "../containers/BookAddContainer";
 import { Redirect } from "react-router-dom";
 import useToken from "../hooks/useToken";
 import Layout from "../components/Layout";
 
-const Home = () => {
+const Add = () => {
   const token = useToken();
   if (token === null) {
     return <Redirect to="/signin" />;
@@ -12,9 +12,9 @@ const Home = () => {
 
   return (
     <Layout>
-      <BooksContainer />
+      <BookAddContainer />
     </Layout>
   );
 };
 
-export default Home;
+export default Add;

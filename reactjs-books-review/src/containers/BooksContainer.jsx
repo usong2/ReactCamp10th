@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Books from "../components/Books";
-import { requestBooksSaga } from "../redux/modules/books";
+import { requestBooksSaga, deleteBookSaga } from "../redux/modules/books";
 
 const BooksContainer = (props) => {
   const books = useSelector((state) => state.books.books);
@@ -14,6 +14,13 @@ const BooksContainer = (props) => {
     dispatch(requestBooksSaga());
   }, [dispatch]);
 
+  const deleteBook = useCallback(
+    (bookId) => {
+      dispatch(deleteBookSaga(bookId));
+    },
+    [dispatch]
+  );
+
   return (
     <Books
       {...props}
@@ -21,6 +28,7 @@ const BooksContainer = (props) => {
       loading={loading}
       error={error}
       requestBooks={requestBooks}
+      deleteBook={deleteBook}
     />
   );
 };
